@@ -19,7 +19,7 @@ over a call, asks the questions, and records the evidence and responses.
    remain in the response history without becoming findings.
 5. **Export** — generate common machine-readable and human-readable outputs.
 
-Questions can be repeated for each selected platform or other choice field,
+Built-in questions can repeat for selected platforms or other choice fields,
 keeping answers and findings scoped to the relevant environment.
 
 ## Outputs
@@ -29,11 +29,12 @@ HTML report suitable for sharing or printing. The HTML report presents a
 unified executive summary, technical commentary, and remediation guidance,
 followed by assessment context, findings, positive observations, and response
 history. Each response records its question, answer, notes, and optional
-scope.
+scope. Copy controls in the HTML report can copy each narrative section or
+the complete narrative as Markdown; no Markdown report file is generated.
 
 Each assessment writes its reports into a dedicated timestamped directory
 under `audit-companion/` by default. Use `--output-dir` to choose another
 parent directory.
 
-Assessment packs may later add specialized outputs through shared adapters,
-without coupling those formats to the interview engine.
+The built-in MDM, remote-access, and VoIP assessments use this shared workflow
+while retaining their own questions, guidance, and applicability rules.

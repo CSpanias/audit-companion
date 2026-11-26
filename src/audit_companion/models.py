@@ -1,4 +1,4 @@
-"""Validated models shared by assessment packs and the interview engine."""
+"""Validated models shared by built-in assessments and the interview engine."""
 
 from typing import Literal
 
@@ -68,6 +68,7 @@ class AssessmentPack(BaseModel):
     id: str = Field(pattern=r"^[a-z0-9][a-z0-9-]*$")
     title: str
     version: str
+    executive_summary: str | None = None
     context: list[ContextField] = Field(default_factory=list)
     questions: list[Question] = Field(min_length=1)
 

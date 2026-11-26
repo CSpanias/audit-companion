@@ -144,6 +144,11 @@ def test_interview_collects_setup_before_conditioned_context_and_questions() -> 
     assert results.findings[0]["question_id"] == "shared"
     assert results.positive_observations[0]["question_id"] == "ios-only"
     assert output[1] == ""
+    context_headers = [
+        index for index, line in enumerate(output) if line.startswith("[CONTEXT ")
+    ]
+    assert context_headers
+    assert all(output[index + 1] == "" for index in context_headers)
     assert output[output.index("  2. Android") + 1] == ""
     assert output.count("") >= len(results.context) + len(results.responses)
 

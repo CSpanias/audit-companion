@@ -1,6 +1,10 @@
 id: voip
 title: VoIP Security Assessment
 version: '1.0'
+executive_summary: >-
+  The VoIP review for {client_name} assesses authentication, administrative access, cryptographic protection,
+  threat prevention, monitoring, and platform lifecycle. Weak controls can expose business communications,
+  enable unauthorised administration or toll fraud, disrupt service, or delay detection of malicious activity.
 context:
 - id: client_name
   label: What is the organisation's name?

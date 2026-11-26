@@ -4,15 +4,14 @@ import pytest
 
 from audit_companion.engine import build_results
 from audit_companion.models import QuestionResponse
-from audit_companion.packs import load_pack
 from audit_companion.sureformat import (
     SureFormatExportError,
     export_sureformat_xml,
 )
 
 
-def test_sureformat_export_groups_findings_and_reports_unmapped(tmp_path) -> None:
-    pack = load_pack("examples/minimal.yaml")
+def test_sureformat_export_groups_findings_and_reports_unmapped(minimal_pack, tmp_path) -> None:
+    pack = minimal_pack
     pack.questions[0].sureformat_id = "SC-100"
     results = build_results(
         pack,
@@ -49,8 +48,8 @@ def test_sureformat_export_groups_findings_and_reports_unmapped(tmp_path) -> Non
     assert root.find(".//vulnerability").attrib["id"] == "SC-100"
 
 
-def test_sureformat_export_requires_pack_mappings(tmp_path) -> None:
-    pack = load_pack("examples/minimal.yaml")
+def test_sureformat_export_requires_pack_mappings(minimal_pack, tmp_path) -> None:
+    pack = minimal_pack
     results = build_results(
         pack,
         {"access_platform": "Platform A", "organization": "Example"},
@@ -62,8 +61,8 @@ def test_sureformat_export_requires_pack_mappings(tmp_path) -> None:
         export_sureformat_xml(results, pack, tmp_path, lambda _scope: "asset")
 
 
-def test_sureformat_export_can_map_a_finding_by_scope(tmp_path) -> None:
-    pack = load_pack("examples/minimal.yaml")
+def test_sureformat_export_can_map_a_finding_by_scope(minimal_pack, tmp_path) -> None:
+    pack = minimal_pack
     pack.questions[0].sureformat_id_by_scope = {"Platform A": "SC-101"}
     results = build_results(
         pack,

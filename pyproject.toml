@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "audit-companion"
 version = "0.1.0"
-description = "A framework for guided, live security assessments."
+description = "An interactive tool for guided, live security assessments."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"

@@ -1,9 +1,9 @@
 # Audit Companion
 
-**A framework for guided, live security assessments.**
+**An interactive tool for guided, live security assessments.**
 
 Audit Companion brings the shared workflow of three existing assessment tools
-into one extensible framework:
+into one interactive tool:
 
 - [MDM-Audit](https://github.com/CSpanias/mdm-audit)
 - [Remote-Access-Audit](https://github.com/CSpanias/remote-access-audit)
@@ -14,13 +14,12 @@ with a customer over a call. The assessor gathers context, asks structured
 control questions, uses evidence and configuration guidance, records answers
 and notes, then exports assessment results.
 
-## Assessment packs
+## Assessments
 
-Each assessment pack owns its domain-specific questions, evidence guidance,
-context, and applicability rules. The framework provides the common interview,
-answer capture, result generation, and reporting lifecycle.
+Each subcommand provides its own built-in questions, evidence guidance,
+context collection, and platform-specific applicability.
 
-| Pack | Focus | Status |
+| Assessment | Focus | Status |
 | --- | --- | --- |
 | MDM | Microsoft Intune for iOS/iPadOS and Android | Available |
 | Remote access | Microsoft Always On VPN and BeyondTrust PRA | Available |
@@ -28,12 +27,11 @@ answer capture, result generation, and reporting lifecycle.
 
 ## Current status
 
-The framework includes reusable interactive workflows, built-in assessment
-packs, conditional context and control selection, and JSON and self-contained
-HTML reports.
+The tool shares the interview, results, and reporting workflow across the
+built-in assessments. It generates JSON findings and self-contained HTML
+reports.
 
 Start an assessment by running `audit-companion mdm`,
 `audit-companion remote-access`, or `audit-companion voip`.
 
-Start with [installation](installation.md) and the [workflow](workflow.md), or
-read the [assessment pack format](framework/assessment-packs.md).
+Start with [installation](installation.md) and the [workflow](workflow.md).

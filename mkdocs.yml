@@ -1,5 +1,5 @@
 site_name: Audit Companion
-site_description: A guided framework for live security assessments.
+site_description: An interactive tool for guided live security assessments.
 site_url: https://cspanias.github.io/audit-companion/
 repo_name: CSpanias/audit-companion
 repo_url: https://github.com/CSpanias/audit-companion
@@ -45,8 +45,6 @@ nav:
   - Getting Started:
       - Installation: installation.md
       - Workflow: workflow.md
-  - Framework:
-      - Assessment packs: framework/assessment-packs.md
   - Assessments:
       - MDM: assessments/mdm.md
       - Remote access: assessments/remote-access.md

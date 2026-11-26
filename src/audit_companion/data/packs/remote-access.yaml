@@ -1,6 +1,11 @@
 id: remote-access
 title: Remote Access Security Assessment
 version: '1.0'
+executive_summary: >-
+  The remote access review for {client_name} assesses authentication, privileged access, cryptographic
+  protections, access governance, and monitoring for the selected platform. Gaps in these controls can
+  expose remote access to account compromise or misuse, and limit the organisation's ability to detect or
+  investigate suspicious activity.
 context:
 - id: client_name
   label: What is the organisation's name?

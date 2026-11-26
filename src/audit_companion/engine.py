@@ -114,6 +114,7 @@ def collect_context(
             continue
 
         emit(f"[CONTEXT {current}/{len(fields)}]", output_fn, "bold cyan")
+        emit("", output_fn)
         if field.description:
             emit_panel("Context", field.description.strip(), "blue", output_fn)
         if field.evidence:

@@ -31,13 +31,6 @@ Each command starts its interactive assessment and generates JSON and HTML
 reports in a dedicated timestamped directory under `audit-companion/`. Add
 `--output-dir reports` to choose another parent directory.
 
-To try the pack format with a custom assessment:
-
-```powershell
-audit-companion validate examples\minimal.yaml
-audit-companion run examples\minimal.yaml --output-dir reports
-```
-
 ## Build the documentation
 
 ```powershell

@@ -5,13 +5,14 @@ from pathlib import Path
 import pytest
 
 from audit_companion import cli
-from audit_companion.cli import build_parser, load_builtin_pack
+from audit_companion.cli import build_parser
 from audit_companion.engine import (
     applicable_items,
     build_results,
     expand_question_scopes,
 )
 from audit_companion.models import AssessmentPack, AssessmentResults
+from audit_companion.packs import load_builtin_pack
 
 
 @pytest.mark.parametrize("pack_id", ["mdm", "remote-access", "voip"])
@@ -28,6 +29,13 @@ def test_domain_command_starts_without_a_pack_path(command: str) -> None:
 
     assert args.command == command
     assert args.output_dir == Path("audit-companion")
+    assert not hasattr(args, "pack")
+
+
+@pytest.mark.parametrize("command", ["run", "validate"])
+def test_custom_pack_commands_are_not_available(command: str) -> None:
+    with pytest.raises(SystemExit):
+        build_parser().parse_args([command, "assessment.yaml"])
 
 
 @pytest.mark.parametrize("command", ["mdm", "remote-access", "voip"])

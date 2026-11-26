@@ -1,4 +1,4 @@
-"""Internal SureFormat XML export for packs with configured finding mappings."""
+"""Internal SureFormat XML export for built-in assessments with finding mappings."""
 
 import re
 import xml.etree.ElementTree as ET
