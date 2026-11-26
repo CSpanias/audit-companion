@@ -228,10 +228,14 @@ def _executive_summary_paragraphs(
     )
     paragraphs = []
     if summary_template:
+        summary_values = {
+            field_id: _summary_value(value)
+            for field_id, value in results.context.items()
+        }
+        summary_values["client_name"] = client_name
+        summary_values["platforms"] = summary_values.get("platforms") or "mobile"
         paragraphs.append(
-            summary_template.format_map(
-                {"client_name": client_name},
-            )
+            summary_template.format_map(summary_values)
         )
     else:
         paragraphs.append(
@@ -243,14 +247,13 @@ def _executive_summary_paragraphs(
     if results.findings:
         groups = _summary_groups(results.findings)
         titles = _summary_titles(results.findings)
-        finding_details = []
         if groups:
-            finding_details.append(f"Control gaps affected {_human_list(groups)}")
+            paragraphs.append(
+                f"Control gaps were identified in {_human_list(groups)}."
+            )
         if titles:
-            finding_details.append(f"including {_human_list(titles)}")
-        if finding_details:
-            paragraphs.append(" ".join(finding_details) + ".")
-        else:
+            paragraphs.append(f"Representative findings include {_human_list(titles)}.")
+        if not groups and not titles:
             paragraphs.append(
                 "The assessment identified control gaps that require remediation."
             )
@@ -276,6 +279,12 @@ def _executive_summary_paragraphs(
             "treating those areas as compliant or drawing final conclusions."
         )
     return paragraphs
+
+
+def _summary_value(value: object) -> str:
+    if isinstance(value, list):
+        return _human_list([str(item) for item in value]) if value else ""
+    return str(value)
 
 
 def _summary_groups(observations: list[dict[str, object]]) -> list[str]:
@@ -318,15 +327,10 @@ def _render_commentary(findings: list[dict[str, object]]) -> str:
     for group, observations in groups.items():
         rendered_observations = []
         for observation in observations:
-            scope = _scope_text(observation.get("scope"))
-            scope_html = (
-                f'<p class="muted">Scope: {escape(scope)}</p>' if scope else ""
-            )
             title = str(observation.get("title", "")).strip()
             title_html = f"<strong>{escape(title)}.</strong> " if title else ""
             rendered_observations.append(
                 '<article class="observation">'
-                f"{scope_html}"
                 f"<p>{title_html}{escape(_commentary_narrative(observation))}</p>"
                 "</article>"
             )
@@ -345,6 +349,7 @@ def _commentary_groups(
             continue
         group = str(
             finding.get("commentary_group")
+            or finding.get("theme")
             or finding.get("section")
             or "Assessment findings"
         )
@@ -353,15 +358,13 @@ def _commentary_groups(
 
 
 def _commentary_narrative(observation: dict[str, object]) -> str:
-    parts = []
-    for field in ("description", "commentary"):
-        part = str(observation.get(field) or "").strip()
-        if part:
-            parts.append(part)
-    return " ".join(
-        part if part.endswith((".", "!", "?")) else f"{part}."
-        for part in parts
-    )
+    narrative = str(observation.get("commentary") or "").strip()
+    if not narrative:
+        narrative = str(observation.get("description") or "").strip()
+    narrative = " ".join(narrative.split())
+    if narrative and not narrative.endswith((".", "!", "?")):
+        narrative += "."
+    return narrative
 
 
 def _commentary_markdown(findings: list[dict[str, object]]) -> str:
@@ -374,9 +377,6 @@ def _commentary_markdown(findings: list[dict[str, object]]) -> str:
                 lines.append(f"**{title}.** {_commentary_narrative(observation)}")
             else:
                 lines.append(_commentary_narrative(observation))
-            scope = _scope_text(observation.get("scope"))
-            if scope:
-                lines.append(f"Scope: {scope}")
             lines.append("")
     body = "\n".join(lines).strip()
     if not body:
@@ -426,6 +426,7 @@ def _remediation_groups(
             continue
         group = str(
             finding.get("commentary_group")
+            or finding.get("theme")
             or finding.get("section")
             or "General"
         )

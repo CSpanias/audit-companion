@@ -2,10 +2,10 @@ id: mdm
 title: Mobile Device Management Security Assessment
 version: '1.0'
 executive_summary: >-
-  The mobile device management review for {client_name} examines how policies protect managed iOS/iPadOS
-  and Android devices. It considers authentication, device hardening, application governance, data protection,
-  compliance, and lifecycle management. Weak controls can expose corporate information or allow devices
-  that do not meet security requirements to access business resources.
+  The mobile device management review for {client_name} examines how policies protect managed {platforms}
+  devices. It considers authentication, device hardening, application governance, data protection, compliance,
+  and lifecycle management. Weak controls can expose corporate information or allow devices that do not meet
+  security requirements to access business resources.
 context:
 - id: client_name
   label: What is the client or tenant name?
