@@ -14,6 +14,7 @@ class ContextField(BaseModel):
 
     id: str
     label: str
+    report_label: str | None = None
     type: ContextType = "text"
     phase: Literal["setup", "context"] = "context"
     required: bool = False
@@ -69,6 +70,7 @@ class AssessmentPack(BaseModel):
     title: str
     version: str
     executive_summary: str | None = None
+    commentary_intro: str | None = None
     context: list[ContextField] = Field(default_factory=list)
     questions: list[Question] = Field(min_length=1)
 

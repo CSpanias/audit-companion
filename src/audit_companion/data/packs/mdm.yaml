@@ -2,18 +2,24 @@ id: mdm
 title: Mobile Device Management Security Assessment
 version: '1.0'
 executive_summary: >-
-  The mobile device management review for {client_name} examines how policies protect managed {platforms}
-  devices. It considers authentication, device hardening, application governance, data protection, compliance,
-  and lifecycle management. Weak controls can expose corporate information or allow devices that do not meet
-  security requirements to access business resources.
+  The mobile device management review for {client_name} examines how policies within the {mdm_vendor}
+  environment protect managed {platforms} devices. It considers authentication, device hardening, application
+  governance, data protection, compliance, and lifecycle management. Weak controls can expose corporate
+  information or allow devices that do not meet security requirements to access business resources.
+commentary_intro: >-
+  A mobile device management configuration review was conducted for {client_name}, covering {mdm_vendor}
+  policies for managed {platforms} devices. The assessment reviewed how these policies protect device access,
+  corporate information, and access to business resources.
 context:
 - id: client_name
   label: What is the client or tenant name?
+  report_label: Organisation
   type: text
   phase: setup
   required: true
 - id: platforms
   label: Which mobile platforms are being reviewed?
+  report_label: Mobile platforms
   type: multi_choice
   phase: setup
   required: true
@@ -22,6 +28,7 @@ context:
   - Android
 - id: mdm_vendor
   label: Which MDM solution is being reviewed?
+  report_label: MDM solution
   type: choice
   phase: setup
   required: true
@@ -34,6 +41,7 @@ context:
     - Android
 - id: mdm_version
   label: Which MDM platform version or service release is in use?
+  report_label: MDM platform version
   type: text
   phase: setup
   required: true
@@ -45,6 +53,7 @@ context:
     - Android
 - id: ios_policy_count
   label: How many iOS compliance policies are configured?
+  report_label: iOS compliance policies
   type: integer
   phase: context
   required: true
@@ -55,6 +64,7 @@ context:
     - iOS
 - id: android_policy_count
   label: How many Android compliance policies are configured?
+  report_label: Android compliance policies
   type: integer
   phase: context
   required: true
@@ -65,6 +75,7 @@ context:
     - Android
 - id: ios_device_count
   label: How many iOS devices are currently enrolled?
+  report_label: Enrolled iOS devices
   type: integer
   phase: context
   required: true
@@ -75,6 +86,7 @@ context:
     - iOS
 - id: android_device_count
   label: How many Android devices are currently enrolled?
+  report_label: Enrolled Android devices
   type: integer
   phase: context
   required: true

@@ -26,11 +26,11 @@ keeping answers and findings scoped to the relevant environment.
 
 The framework currently exports a JSON assessment result and a self-contained
 HTML report suitable for sharing or printing. The HTML report presents a
-unified executive summary, technical commentary, and remediation guidance,
-followed by assessment context, findings, positive observations, and response
-history. Each response records its question, answer, notes, and optional
-scope. Copy controls in the HTML report can copy each narrative section or
-the complete narrative as Markdown; no Markdown report file is generated.
+unified executive summary, an assessment configuration table, grouped
+technical commentary, positive controls, remediation actions, and consolidated
+references. Copy controls in the HTML report can copy each narrative section or
+the complete report as Markdown; no Markdown report file is generated. The
+structured findings output retains the response history and assessor notes.
 
 Each assessment writes its reports into a dedicated timestamped directory
 under `audit-companion/` by default. Use `--output-dir` to choose another

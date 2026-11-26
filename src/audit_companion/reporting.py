@@ -1,18 +1,12 @@
 """Common JSON and HTML assessment exports."""
 
 import json
+from collections.abc import Mapping
 from html import escape
 from pathlib import Path
-from typing import TypedDict
 from urllib.parse import urlparse
 
 from audit_companion.models import AssessmentResults
-
-
-class _RemediationAction(TypedDict):
-    solution: str
-    controls: list[str]
-    scopes: list[str]
 
 
 def export_results(
@@ -20,6 +14,8 @@ def export_results(
     output_dir: str | Path,
     include_json: bool = True,
     executive_summary: str | None = None,
+    commentary_intro: str | None = None,
+    context_labels: Mapping[str, str] | None = None,
 ) -> tuple[Path | None, Path]:
     destination = Path(output_dir)
     destination.mkdir(parents=True, exist_ok=True)
@@ -32,7 +28,7 @@ def export_results(
             encoding="utf-8",
         )
     html_path.write_text(
-        _render_html(results, executive_summary),
+        _render_html(results, executive_summary, commentary_intro, context_labels),
         encoding="utf-8",
     )
     return json_path, html_path
@@ -41,56 +37,66 @@ def export_results(
 def _render_html(
     results: AssessmentResults,
     executive_summary: str | None = None,
+    commentary_intro: str | None = None,
+    context_labels: Mapping[str, str] | None = None,
 ) -> str:
-    context_rows = []
-    for field_id, value in results.context.items():
-        rendered_value = (
-            ", ".join(map(str, value))
-            if isinstance(value, list)
-            else str(value)
-        )
-        context_rows.append(
-            "<tr>"
-            f"<th scope=\"row\">{escape(field_id)}</th>"
-            f"<td>{escape(rendered_value)}</td>"
-            f"<td>{escape(results.context_notes.get(field_id, ''))}</td>"
-            "</tr>"
+    configuration = _configuration_entries(results, context_labels or {})
+    configuration_headers = (
+        ("Configuration Item", "Setting", "Assessor Notes")
+        if any(note for _, _, note in configuration)
+        else ("Configuration Item", "Setting")
+    )
+    configuration_html = ""
+    if configuration:
+        configuration_rows = [
+            _render_configuration_row(
+                item,
+                setting,
+                note,
+                len(configuration_headers) == 3,
+            )
+            for item, setting, note in configuration
+        ]
+        configuration_html = (
+            "<h3>Configuration Summary</h3>"
+            + _render_table(configuration_headers, configuration_rows)
         )
 
-    findings_html = _render_html_observations(results.findings, "finding")
-    positives_html = _render_html_observations(
-        results.positive_observations,
-        "positive observation",
-    )
     summary_paragraphs = _executive_summary_paragraphs(results, executive_summary)
     executive_summary_html = "\n".join(
         f"<p>{escape(paragraph)}</p>" for paragraph in summary_paragraphs
     )
-    commentary_html = _render_commentary(results.findings)
+    rendered_commentary_intro = _format_report_text(commentary_intro, results)
+    commentary_html = _render_commentary(
+        results.findings,
+        results.positive_observations,
+        rendered_commentary_intro,
+        configuration_html,
+    )
     remediation_html = _render_remediation(results.findings)
+    references = _report_references(results)
+    references_html = _render_references(references)
     summary_markdown = _markdown_section(
         "Executive Summary",
         "\n\n".join(summary_paragraphs),
     )
-    commentary_markdown = _commentary_markdown(results.findings)
-    remediation_markdown = _remediation_markdown(results.findings)
-    all_markdown = "\n\n".join(
-        (summary_markdown, commentary_markdown, remediation_markdown)
+    commentary_markdown = _commentary_markdown(
+        results.findings,
+        results.positive_observations,
+        rendered_commentary_intro,
+        configuration_headers,
+        configuration,
     )
-    response_rows = []
-    for response in results.responses:
-        scope = ", ".join(
-            f"{field_id}={value}" for field_id, value in response.scope.items()
+    remediation_markdown = _remediation_markdown(results.findings)
+    references_markdown = _references_markdown(references)
+    all_markdown = "\n\n".join(
+        (
+            summary_markdown,
+            commentary_markdown,
+            remediation_markdown,
+            references_markdown,
         )
-        response_rows.append(
-            "<tr>"
-            f"<td>{escape(response.question_id)}</td>"
-            f"<td>{escape(response.answer.replace('_', ' ').title())}</td>"
-            f"<td>{escape(scope)}</td>"
-            f"<td>{escape(response.notes or '')}</td>"
-            "</tr>"
-        )
-
+    )
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -98,7 +104,7 @@ def _render_html(
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{escape(results.pack_title)} - Assessment Report</title>
   <style>
-    :root {{ color-scheme: light; font-family: system-ui, sans-serif; color: #172033; background: #f3f6fa; --muted: #53647b; }}
+    :root {{ color-scheme: light; font-family: system-ui, sans-serif; color: #172033; background: #f3f6fa; }}
     body {{ margin: 0; }}
     header {{ padding: 2rem max(1rem, calc((100% - 1100px) / 2)); background: #10233f; color: white; }}
     header h1 {{ margin: 0; }}
@@ -106,14 +112,10 @@ def _render_html(
     section {{ background: white; border: 1px solid #dce3ed; border-radius: .6rem; margin-bottom: 1rem; padding: 1.25rem; }}
     h1, h2, h3 {{ line-height: 1.2; }}
     h2 {{ border-bottom: 1px solid #dce3ed; padding-bottom: .5rem; }}
-    .muted {{ color: var(--muted); }}
-    .summary {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; }}
-    .metric {{ background: #eef2f7; border-radius: .6rem; padding: 1rem; }}
-    .metric strong {{ display: block; font-size: 1.6rem; margin-top: .35rem; }}
     table {{ border-collapse: collapse; width: 100%; }}
     th, td {{ border: 1px solid #dce3ed; padding: .6rem; text-align: left; vertical-align: top; }}
     th {{ background: #f3f6fa; }}
-    .observation, .recommendation {{ border-left: 4px solid #607d9d; margin: 1rem 0; padding: .25rem 1rem; }}
+    .observation {{ border-left: 4px solid #607d9d; margin: 1rem 0; padding: .25rem 1rem; }}
     .empty {{ color: #53647b; font-style: italic; }}
     .copy-controls {{ display: flex; align-items: center; gap: .75rem; margin: .75rem 0; }}
     .copy-button {{ padding: .45rem .7rem; border: 1px solid #9aa8bb; border-radius: .35rem; background: #f3f6fa; color: inherit; cursor: pointer; }}
@@ -130,12 +132,6 @@ def _render_html(
   <p>Assessment pack version {escape(results.pack_version)}</p>
 </header>
 <main>
-  <section class="summary" aria-label="Assessment summary">
-    <div class="metric">Findings<strong>{len(results.findings)}</strong></div>
-    <div class="metric">Positive observations<strong>{len(results.positive_observations)}</strong></div>
-    <div class="metric">Unknown responses<strong>{sum(response.answer == "unknown" for response in results.responses)}</strong></div>
-    <div class="metric">Not applicable<strong>{sum(response.answer == "not_applicable" for response in results.responses)}</strong></div>
-  </section>
   {_render_copy_controls("all-markdown", all_markdown, "Copy All Markdown")}
   <section>
     <h2>Executive Summary</h2>
@@ -143,30 +139,19 @@ def _render_html(
     {executive_summary_html}
   </section>
   <section>
-    <h2>Technical Commentary</h2>
-    {_render_copy_controls("technical-commentary-markdown", commentary_markdown)}
+    <h2>Commentary</h2>
+    {_render_copy_controls("commentary-markdown", commentary_markdown)}
     {commentary_html}
   </section>
   <section>
-    <h2>Remediation Guidance</h2>
-    {_render_copy_controls("remediation-guidance-markdown", remediation_markdown)}
+    <h2>Remediation</h2>
+    {_render_copy_controls("remediation-markdown", remediation_markdown)}
     {remediation_html}
   </section>
   <section>
-    <h2>Assessment context</h2>
-    {_render_table(("Context field", "Value", "Notes"), context_rows)}
-  </section>
-  <section>
-    <h2>Findings</h2>
-    {findings_html}
-  </section>
-  <section>
-    <h2>Positive observations</h2>
-    {positives_html}
-  </section>
-  <section>
-    <h2>Response history</h2>
-    {_render_table(("Question", "Answer", "Scope", "Notes"), response_rows)}
+    <h2>References</h2>
+    {_render_copy_controls("references-markdown", references_markdown)}
+    {references_html}
   </section>
   <footer>Generated by Audit Companion. This report works offline and loads no external resources.</footer>
 </main>
@@ -216,6 +201,63 @@ def _executive_summary_paragraphs(
     results: AssessmentResults,
     summary_template: str | None,
 ) -> list[str]:
+    template_values = _report_template_values(results)
+    paragraphs = []
+    if summary_template:
+        paragraphs.append(summary_template.format_map(template_values))
+    else:
+        paragraphs.append(
+            f"The {results.pack_title.lower()} reviewed security controls in "
+            f"{template_values['client_name']}'s environment."
+        )
+
+    unknown_count = sum(response.answer == "unknown" for response in results.responses)
+    positive_groups = _summary_groups(results.positive_observations)
+    if results.findings:
+        groups = _summary_groups(results.findings)
+        titles = _summary_titles(results.findings)
+        if groups:
+            paragraphs.append(
+                f"The assessment identified opportunities for improvement in "
+                f"{_human_list(groups)}."
+            )
+        if titles:
+            paragraphs.append(
+                f"Key observations included {_human_list(titles)}."
+            )
+        if not groups and not titles:
+            paragraphs.append(
+                "The assessment identified control gaps that require remediation."
+            )
+        if positive_groups:
+            paragraphs.append(
+                f"Positive controls were also observed in {_human_list(positive_groups)}."
+            )
+        paragraphs.append(
+            "Addressing these observations would strengthen assurance over the "
+            "assessed environment and support ongoing security oversight."
+        )
+    else:
+        paragraphs.append(
+            "No non-compliant responses were recorded among the controls assessed."
+        )
+        if positive_groups:
+            paragraphs.append(
+                f"The review confirmed positive controls in {_human_list(positive_groups)}."
+            )
+    if unknown_count:
+        paragraphs.append(
+            "Some controls could not be verified and require further evidence "
+            "before the assessment can be considered conclusive."
+        )
+    return paragraphs
+
+
+def _report_template_values(results: AssessmentResults) -> dict[str, str]:
+    values = {
+        field_id: _summary_value(value)
+        for field_id, value in results.context.items()
+    }
     client_name = next(
         (
             str(value).strip()
@@ -226,59 +268,23 @@ def _executive_summary_paragraphs(
         ),
         "the assessed organisation",
     )
-    paragraphs = []
-    if summary_template:
-        summary_values = {
-            field_id: _summary_value(value)
-            for field_id, value in results.context.items()
-        }
-        summary_values["client_name"] = client_name
-        summary_values["platforms"] = summary_values.get("platforms") or "mobile"
-        paragraphs.append(
-            summary_template.format_map(summary_values)
-        )
-    else:
-        paragraphs.append(
-            f"The {results.pack_title.lower()} reviewed security controls in "
-            f"{client_name}'s environment."
-        )
+    values["client_name"] = client_name
+    for field_id, default in {
+        "platforms": "mobile",
+        "mdm_vendor": "the selected MDM solution",
+        "remote_access_solution": "the selected remote access solution",
+        "voip_solution": "the selected VoIP platform",
+        "device_type": "assessed component",
+    }.items():
+        values[field_id] = values.get(field_id) or default
+    return values
 
-    unknown_count = sum(response.answer == "unknown" for response in results.responses)
-    if results.findings:
-        groups = _summary_groups(results.findings)
-        titles = _summary_titles(results.findings)
-        if groups:
-            paragraphs.append(
-                f"Control gaps were identified in {_human_list(groups)}."
-            )
-        if titles:
-            paragraphs.append(f"Representative findings include {_human_list(titles)}.")
-        if not groups and not titles:
-            paragraphs.append(
-                "The assessment identified control gaps that require remediation."
-            )
-        paragraphs.append(
-            "Address the identified gaps according to business risk and validate "
-            "the changes through a follow-up review."
-        )
-    else:
-        paragraphs.append(
-            "No non-compliant controls were identified among the responses with "
-            "a conclusive outcome. This point-in-time review does not guarantee "
-            "that all security risks are absent."
-        )
 
-    positive_groups = _summary_groups(results.positive_observations)
-    if positive_groups:
-        paragraphs.append(
-            f"Positive controls were observed in {_human_list(positive_groups)}."
-        )
-    if unknown_count:
-        paragraphs.append(
-            "Some controls could not be verified. Collect further evidence before "
-            "treating those areas as compliant or drawing final conclusions."
-        )
-    return paragraphs
+def _format_report_text(
+    template: str | None,
+    results: AssessmentResults,
+) -> str:
+    return template.format_map(_report_template_values(results)) if template else ""
 
 
 def _summary_value(value: object) -> str:
@@ -318,12 +324,62 @@ def _human_list(items: list[str]) -> str:
     return f"{', '.join(items[:-1])}, and {items[-1]}"
 
 
-def _render_commentary(findings: list[dict[str, object]]) -> str:
-    groups = _commentary_groups(findings)
-    if not groups:
-        return '<p class="empty">No technical commentary was recorded.</p>'
+def _configuration_entries(
+    results: AssessmentResults,
+    labels: Mapping[str, str],
+) -> list[tuple[str, str, str]]:
+    entries = []
+    for field_id, value in results.context.items():
+        label = labels.get(field_id) or field_id.replace("_", " ").capitalize()
+        note = " ".join(results.context_notes.get(field_id, "").split())
+        entries.append((label, _summary_value(value), note))
+    return entries
 
-    rendered_groups = []
+
+def _render_configuration_row(
+    item: str,
+    setting: str,
+    note: str,
+    include_note: bool,
+) -> str:
+    note_cell = f"<td>{escape(note)}</td>" if include_note else ""
+    return (
+        "<tr>"
+        f"<th scope=\"row\">{escape(item)}</th>"
+        f"<td>{escape(setting)}</td>"
+        f"{note_cell}"
+        "</tr>"
+    )
+
+
+def _markdown_table(
+    headers: tuple[str, ...],
+    rows: list[tuple[str, ...]],
+) -> str:
+    def cell(value: str) -> str:
+        return value.replace("|", r"\|").replace("\n", "<br>").strip()
+
+    header_line = "| " + " | ".join(map(cell, headers)) + " |"
+    separator_line = "| " + " | ".join("---" for _ in headers) + " |"
+    row_lines = [
+        "| " + " | ".join(map(cell, row)) + " |"
+        for row in rows
+    ]
+    return "\n".join((header_line, separator_line, *row_lines))
+
+
+def _render_commentary(
+    findings: list[dict[str, object]],
+    positive_observations: list[dict[str, object]],
+    intro: str,
+    configuration_html: str,
+) -> str:
+    groups = _commentary_groups(findings)
+    sections = []
+    if intro:
+        sections.append(f"<p>{escape(intro)}</p>")
+    if configuration_html:
+        sections.append(configuration_html)
     for group, observations in groups.items():
         rendered_observations = []
         for observation in observations:
@@ -334,10 +390,23 @@ def _render_commentary(findings: list[dict[str, object]]) -> str:
                 f"<p>{title_html}{escape(_commentary_narrative(observation))}</p>"
                 "</article>"
             )
-        rendered_groups.append(
+        sections.append(
             f"<h3>{escape(group)}</h3>{''.join(rendered_observations)}"
         )
-    return "\n".join(rendered_groups)
+
+    positive_narratives = _positive_narratives(positive_observations)
+    if positive_narratives:
+        positive_items = "".join(
+            f"<li>{escape(narrative)}</li>" for narrative in positive_narratives
+        )
+        sections.append(
+            f"<h3>Positive Security Controls</h3><ul>{positive_items}</ul>"
+        )
+    if not groups and not positive_narratives:
+        sections.append(
+            '<p class="empty">No control observations were recorded.</p>'
+        )
+    return "\n".join(sections)
 
 
 def _commentary_groups(
@@ -367,9 +436,34 @@ def _commentary_narrative(observation: dict[str, object]) -> str:
     return narrative
 
 
-def _commentary_markdown(findings: list[dict[str, object]]) -> str:
+def _commentary_markdown(
+    findings: list[dict[str, object]],
+    positive_observations: list[dict[str, object]],
+    intro: str,
+    configuration_headers: tuple[str, ...],
+    configuration: list[tuple[str, str, str]],
+) -> str:
     lines = []
-    for group, observations in _commentary_groups(findings).items():
+    if intro:
+        lines.extend((intro, ""))
+    if configuration:
+        lines.extend(
+            (
+                "### Configuration Summary",
+                _markdown_table(
+                    configuration_headers,
+                    [
+                        (item, setting, note)
+                        if len(configuration_headers) == 3
+                        else (item, setting)
+                        for item, setting, note in configuration
+                    ],
+                ),
+                "",
+            )
+        )
+    groups = _commentary_groups(findings)
+    for group, observations in groups.items():
         lines.append(f"### {group}")
         for observation in observations:
             title = str(observation.get("title", "")).strip()
@@ -378,92 +472,95 @@ def _commentary_markdown(findings: list[dict[str, object]]) -> str:
             else:
                 lines.append(_commentary_narrative(observation))
             lines.append("")
+    positive_narratives = _positive_narratives(positive_observations)
+    if positive_narratives:
+        lines.append("### Positive Security Controls")
+        lines.extend(f"- {narrative}" for narrative in positive_narratives)
+        lines.append("")
+    if not groups and not positive_narratives:
+        lines.append("No control observations were recorded.")
     body = "\n".join(lines).strip()
-    if not body:
-        body = "No technical commentary was recorded."
-    return _markdown_section("Technical Commentary", body)
+    return _markdown_section("Commentary", body)
 
 
-def _render_remediation(findings: list[dict[str, object]]) -> str:
-    groups = _remediation_groups(findings)
-    if not groups:
-        return '<p class="empty">No remediation actions were recorded.</p>'
-
-    rendered_groups = []
-    for group, group_actions in groups.items():
-        rendered_actions = []
-        for action in group_actions:
-            controls = ", ".join(action["controls"])
-            scopes = ", ".join(action["scopes"])
-            controls_html = (
-                f'<p class="muted">Related controls: {escape(controls)}</p>'
-                if controls
-                else ""
-            )
-            scopes_html = (
-                f'<p class="muted">Scope: {escape(scopes)}</p>' if scopes else ""
-            )
-            rendered_actions.append(
-                '<article class="recommendation">'
-                f"<p>{escape(action['solution'])}</p>"
-                f"{controls_html}{scopes_html}"
-                "</article>"
-            )
-        rendered_groups.append(
-            f"<h3>{escape(group)}</h3>{''.join(rendered_actions)}"
-        )
-    return "\n".join(rendered_groups)
+def _positive_narratives(observations: list[dict[str, object]]) -> list[str]:
+    narratives = []
+    for observation in observations:
+        narrative = _commentary_narrative(observation)
+        if narrative and narrative not in narratives:
+            narratives.append(narrative)
+    return narratives
 
 
-def _remediation_groups(
-    findings: list[dict[str, object]],
-) -> dict[str, list[_RemediationAction]]:
-    groups: dict[str, list[_RemediationAction]] = {}
-    actions: dict[tuple[str, str], _RemediationAction] = {}
+def _remediation_actions(findings: list[dict[str, object]]) -> list[str]:
+    actions = []
     for finding in findings:
         solution = finding.get("solution")
         if not solution:
             continue
-        group = str(
-            finding.get("commentary_group")
-            or finding.get("theme")
-            or finding.get("section")
-            or "General"
-        )
-        action_text = str(solution)
-        key = (group, action_text)
-        action = actions.get(key)
-        if action is None:
-            action = {"solution": action_text, "controls": [], "scopes": []}
-            actions[key] = action
-            groups.setdefault(group, []).append(action)
+        action = " ".join(str(solution).split())
+        if action and action not in actions:
+            actions.append(action)
+    return actions
 
-        title = str(finding.get("title", ""))
-        if title and title not in action["controls"]:
-            action["controls"].append(title)
-        scope = _scope_text(finding.get("scope"))
-        if scope and scope not in action["scopes"]:
-            action["scopes"].append(scope)
-    return groups
+
+def _render_remediation(findings: list[dict[str, object]]) -> str:
+    actions = _remediation_actions(findings)
+    if not actions:
+        return (
+            '<p class="empty">No corrective actions were identified for the '
+            "assessed controls.</p>"
+        )
+    items = "".join(f"<li>{escape(action)}</li>" for action in actions)
+    return (
+        "<p>The following actions address the identified observations and "
+        "support continued security assurance:</p>"
+        f"<ul>{items}</ul>"
+    )
 
 
 def _remediation_markdown(findings: list[dict[str, object]]) -> str:
-    lines = []
-    for group, group_actions in _remediation_groups(findings).items():
-        lines.append(f"### {group}")
-        for action in group_actions:
-            lines.append(f"- {action['solution']}")
-            if action["controls"]:
-                lines.append(
-                    f"  - Related controls: {', '.join(action['controls'])}"
-                )
-            if action["scopes"]:
-                lines.append(f"  - Scope: {', '.join(action['scopes'])}")
-        lines.append("")
-    body = "\n".join(lines).strip()
-    if not body:
-        body = "No remediation actions were recorded."
-    return _markdown_section("Remediation Guidance", body)
+    actions = _remediation_actions(findings)
+    if actions:
+        body = (
+            "The following actions address the identified observations and "
+            "support continued security assurance:\n\n"
+            + "\n".join(f"- {action}" for action in actions)
+        )
+    else:
+        body = "No corrective actions were identified for the assessed controls."
+    return _markdown_section("Remediation", body)
+
+
+def _report_references(results: AssessmentResults) -> list[str]:
+    references = []
+    for observation in [*results.findings, *results.positive_observations]:
+        values = observation.get("references")
+        if not isinstance(values, list):
+            continue
+        for value in values:
+            reference = str(value).strip()
+            if reference and reference not in references:
+                references.append(reference)
+    return references
+
+
+def _render_references(references: list[str]) -> str:
+    if not references:
+        return '<p class="empty">No references were recorded.</p>'
+    items = "".join(
+        f"<li>{_render_reference(reference)}</li>" for reference in references
+    )
+    return f"<ul>{items}</ul>"
+
+
+def _references_markdown(references: list[str]) -> str:
+    body = (
+        "\n".join(f"- [{reference}]({reference})" for reference in references)
+        if references
+        else "No references were recorded."
+    )
+    return _markdown_section("References", body)
 
 
 def _markdown_section(title: str, body: str) -> str:
@@ -483,78 +580,6 @@ def _render_copy_controls(
         "</div>"
         f'<pre id="{escape(source_id, quote=True)}" hidden>{escape(markdown)}</pre>'
     )
-
-
-def _scope_text(scope: object) -> str:
-    if not isinstance(scope, dict):
-        return ""
-    return ", ".join(f"{field_id}={value}" for field_id, value in scope.items())
-
-
-def _render_html_observations(
-    observations: list[dict[str, object]],
-    label: str,
-) -> str:
-    if not observations:
-        return f'<p class="empty">No {escape(label)}s recorded.</p>'
-
-    rendered = []
-    for observation in observations:
-        scope_text = _scope_text(observation.get("scope"))
-        references = observation.get("references", [])
-        references_html = ""
-        if isinstance(references, list) and references:
-            reference_items = "".join(
-                f"<li>{_render_reference(str(reference))}</li>"
-                for reference in references
-            )
-            references_html = (
-                f"<p><strong>References</strong></p><ul>{reference_items}</ul>"
-            )
-
-        solution_html = ""
-        solution = observation.get("solution")
-        if solution:
-            solution_html = (
-                f"<p><strong>Recommended action:</strong> "
-                f"{escape(str(solution))}</p>"
-            )
-        notes_html = ""
-        notes = observation.get("notes")
-        if notes:
-            notes_html = (
-                f"<p><strong>Assessor notes:</strong> "
-                f"{escape(str(notes))}</p>"
-            )
-        section_html = ""
-        theme = observation.get("theme")
-        if theme:
-            section_html = f'<p class="muted">Theme: {escape(str(theme))}</p>'
-        section = observation.get("section")
-        if section:
-            section_html += f'<p class="muted">Section: {escape(str(section))}</p>'
-        commentary_html = ""
-        commentary = observation.get("commentary")
-        if commentary:
-            commentary_html = f"<p>{escape(str(commentary))}</p>"
-        scope_html = (
-            f'<p class="muted">Scope: {escape(scope_text)}</p>'
-            if scope_text
-            else ""
-        )
-
-        rendered.append(
-            '<article class="observation">'
-            f"<h3>{escape(str(observation.get('title', '')))}</h3>"
-            f"{section_html}{scope_html}"
-            f"<p>{escape(str(observation.get('description', '')))}</p>"
-            f"{commentary_html}"
-            f"<p><strong>Expected value:</strong> "
-            f"{escape(str(observation.get('expected_value', '')))}</p>"
-            f"{solution_html}{notes_html}{references_html}"
-            "</article>"
-        )
-    return "\n".join(rendered)
 
 
 def _render_table(headers: tuple[str, ...], rows: list[str]) -> str:

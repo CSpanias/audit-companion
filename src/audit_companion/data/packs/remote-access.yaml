@@ -3,17 +3,23 @@ title: Remote Access Security Assessment
 version: '1.0'
 executive_summary: >-
   The remote access review for {client_name} assesses authentication, privileged access, cryptographic
-  protections, access governance, and monitoring for the selected platform. Gaps in these controls can
-  expose remote access to account compromise or misuse, and limit the organisation's ability to detect or
-  investigate suspicious activity.
+  protections, access governance, and monitoring for the {remote_access_solution} deployment. Gaps in these
+  controls can expose remote access to account compromise or misuse, and limit the organisation's ability to
+  detect or investigate suspicious activity.
+commentary_intro: >-
+  A remote access configuration review was conducted for {client_name}, covering the {remote_access_solution}
+  deployment. The assessment reviewed controls used to secure remote access services and protect access to
+  internal systems and data.
 context:
 - id: client_name
   label: What is the organisation's name?
+  report_label: Organisation
   type: text
   phase: setup
   required: true
 - id: remote_access_solution
   label: Which remote access solution is being reviewed?
+  report_label: Remote access solution
   type: choice
   phase: setup
   required: true
@@ -23,6 +29,7 @@ context:
   - Other
 - id: deployment_type
   label: How is the PRA solution deployed?
+  report_label: Deployment model
   type: choice
   phase: context
   required: true
@@ -52,6 +59,7 @@ context:
     - BeyondTrust PRA
 - id: vpn_authentication_method
   label: What is the primary VPN authentication method?
+  report_label: Authentication method
   type: choice
   phase: context
   required: true
@@ -69,6 +77,7 @@ context:
     - Other
 - id: identity_provider
   label: What is the primary identity provider / authentication source?
+  report_label: Identity provider
   type: choice
   phase: context
   required: true
@@ -100,6 +109,7 @@ context:
     - BeyondTrust PRA
 - id: tunnel_type
   label: Which VPN tunnel type is deployed?
+  report_label: VPN tunnel type
   type: choice
   phase: context
   required: true
@@ -113,6 +123,7 @@ context:
     - Other
 - id: certificate_authority
   label: Which Certificate Authority is used for VPN authentication?
+  report_label: Certificate authority
   type: choice
   phase: context
   required: true
@@ -128,6 +139,7 @@ context:
     - Other
 - id: split_tunnel_mode
   label: How is VPN traffic routed?
+  report_label: VPN routing model
   type: choice
   phase: context
   required: true
@@ -141,6 +153,7 @@ context:
     - Other
 - id: product_version
   label: What version of BeyondTrust PRA is deployed?
+  report_label: Product version
   type: text
   phase: context
   required: true

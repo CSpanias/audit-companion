@@ -3,16 +3,23 @@ title: VoIP Security Assessment
 version: '1.0'
 executive_summary: >-
   The VoIP review for {client_name} assesses authentication, administrative access, cryptographic protection,
-  threat prevention, monitoring, and platform lifecycle. Weak controls can expose business communications,
-  enable unauthorised administration or toll fraud, disrupt service, or delay detection of malicious activity.
+  threat prevention, monitoring, and platform lifecycle for the {voip_solution} platform, including its
+  {device_type} component. Weak controls can expose business communications, enable unauthorised administration
+  or toll fraud, disrupt service, or delay detection of malicious activity.
+commentary_intro: >-
+  A VoIP security configuration review was conducted for {client_name}, covering the {voip_solution} platform
+  and its {device_type} component. The assessment reviewed controls protecting telephony services, management
+  interfaces, and communications.
 context:
 - id: client_name
   label: What is the organisation's name?
+  report_label: Organisation
   type: text
   phase: setup
   required: true
 - id: voip_solution
   label: Which VoIP platform vendor is being reviewed?
+  report_label: VoIP platform vendor
   type: choice
   phase: setup
   required: true
@@ -20,6 +27,7 @@ context:
   - AudioCodes
 - id: device_type
   label: Which VoIP platform component is being assessed?
+  report_label: Platform component
   type: choice
   phase: context
   required: true
@@ -34,6 +42,7 @@ context:
     - AudioCodes
 - id: deployment_type
   label: How is the VoIP solution deployed?
+  report_label: Deployment model
   type: choice
   phase: context
   required: true
@@ -47,6 +56,7 @@ context:
     - AudioCodes
 - id: identity_provider
   label: What is the primary identity provider / authentication source?
+  report_label: Identity provider
   type: choice
   phase: context
   required: true
@@ -66,6 +76,7 @@ context:
     - AudioCodes
 - id: sip_provider
   label: Which telephony service provider (SIP trunk) is used?
+  report_label: SIP trunk provider
   type: text
   phase: context
   required: true
@@ -77,6 +88,7 @@ context:
     - AudioCodes
 - id: platform_model
   label: What platform model is being reviewed?
+  report_label: Platform model
   type: text
   phase: context
   required: true
@@ -89,6 +101,7 @@ context:
     - AudioCodes
 - id: software_version
   label: What software version is installed?
+  report_label: Software version
   type: text
   phase: context
   required: true
@@ -101,6 +114,7 @@ context:
     - AudioCodes
 - id: management_address
   label: What is the primary management IP address, hostname, or URL?
+  report_label: Management interface address
   type: text
   phase: context
   required: true
