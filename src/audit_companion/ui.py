@@ -52,11 +52,12 @@ def emit(
 def emit_progress(
     completed: int,
     total: int,
+    counter: str,
     output_fn: Callable[[str], None] | None = None,
 ) -> None:
     filled = completed * 20 // total
     bar = "#" * filled + "-" * (20 - filled)
-    emit(f"Progress: [{bar}] {completed}/{total} completed", output_fn, "cyan")
+    emit(f"Progress: [{bar}] {counter}", output_fn, "cyan")
 
 
 def emit_panel(

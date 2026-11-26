@@ -241,18 +241,17 @@ def conduct_review(
     scope_counters: dict[str, int] = {}
 
     for overall_current, (question, scope) in enumerate(question_instances, start=1):
-        emit_progress(overall_current - 1, len(question_instances), output_fn)
         scope_value = scope.get(scope_field_order) if scope_field_order else None
         if scope_value is None:
-            counter = f"[{overall_current}/{len(question_instances)}]"
+            counter = f"{overall_current}/{len(question_instances)}"
         else:
             current = scope_counters.get(scope_value, 0) + 1
             scope_counters[scope_value] = current
             counter = (
-                f"[{current}/{scope_totals[scope_value]}] {scope_value}  |  "
+                f"{current}/{scope_totals[scope_value]} {scope_value}  |  "
                 f"Overall {overall_current}/{len(question_instances)}"
             )
-        emit(counter, output_fn, "bold cyan")
+        emit_progress(overall_current - 1, len(question_instances), counter, output_fn)
         group = question.commentary_group or question.theme
         if group:
             emit(f"Domain: {group}", output_fn, "dim")
@@ -318,7 +317,12 @@ def conduct_review(
             )
         )
         if overall_current == len(question_instances):
-            emit_progress(overall_current, len(question_instances), output_fn)
+            emit_progress(
+                overall_current,
+                len(question_instances),
+                f"{overall_current}/{len(question_instances)} completed",
+                output_fn,
+            )
         emit("", output_fn)
 
     return responses

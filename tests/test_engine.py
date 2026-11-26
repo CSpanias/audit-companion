@@ -158,9 +158,9 @@ def test_interview_collects_setup_before_conditioned_context_and_questions() -> 
         in output
     )
     first_question_index = output.index("Is the shared control enabled?")
-    assert output[first_question_index - 1] == "[1/2]"
+    assert output[first_question_index - 1] == "Progress: [--------------------] 1/2"
     second_question_index = output.index("Is the iOS control enabled?")
-    assert output[second_question_index - 1] == "[2/2]"
+    assert output[second_question_index - 1] == "Progress: [##########----------] 2/2"
     assert output.count("") >= len(results.context) + len(results.responses)
 
 
@@ -200,19 +200,10 @@ def test_interview_batches_repeated_questions_by_configured_scope() -> None:
         ("ios-only", "iOS"),
         ("shared", "Android"),
     ]
-    assert [
-        line
-        for line in output
-        if line.startswith("[") and len(line) > 1 and line[1].isdigit()
-    ] == [
-        "[1/2] iOS  |  Overall 1/3",
-        "[2/2] iOS  |  Overall 2/3",
-        "[1/1] Android  |  Overall 3/3",
-    ]
     assert [line for line in output if line.startswith("Progress:")] == [
-        "Progress: [--------------------] 0/3 completed",
-        "Progress: [######--------------] 1/3 completed",
-        "Progress: [#############-------] 2/3 completed",
+        "Progress: [--------------------] 1/2 iOS  |  Overall 1/3",
+        "Progress: [######--------------] 2/2 iOS  |  Overall 2/3",
+        "Progress: [#############-------] 1/1 Android  |  Overall 3/3",
         "Progress: [####################] 3/3 completed",
     ]
     assert (
@@ -292,7 +283,7 @@ def test_review_separates_domain_guidance_and_expected_sections() -> None:
 
     index = output.index("Domain: Authentication")
     assert output[index - 1 : index + 2] == [
-        "[1/1]",
+        "Progress: [--------------------] 1/1",
         "Domain: Authentication",
         "Is the shared control enabled?",
     ]
