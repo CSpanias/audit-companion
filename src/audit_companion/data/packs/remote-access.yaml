@@ -2,14 +2,98 @@ id: remote-access
 title: Remote Access Security Assessment
 version: '1.0'
 executive_summary: >-
-  The remote access review for {client_name} assesses authentication, privileged access, cryptographic
-  protections, access governance, and monitoring for the {remote_access_solution} deployment. Gaps in these
-  controls can expose remote access to account compromise or misuse, and limit the organisation's ability to
-  detect or investigate suspicious activity.
+  A remote access configuration review was conducted for {client_name}, covering the {remote_access_solution}
+  deployment. The assessment considered authentication controls, cryptographic standards, access governance,
+  monitoring, and solution-specific security functionality.
+executive_summary_findings_intro: >-
+  The assessment identified opportunities for improvement across {areas}.
+executive_summary_conclusion: >-
+  Addressing the identified observations would strengthen the ongoing governance of remote access permissions
+  and provide greater assurance that access remains aligned with business requirements.
+executive_summary_positive_conclusion: >-
+  Overall, the assessed remote access environment demonstrated a strong security posture and a sound foundation
+  for protecting remote connectivity.
+positive_summary_intro: >-
+  Positive controls included {strengths}, supporting the secure operation and ongoing oversight of the remote
+  access service.
 commentary_intro: >-
   A remote access configuration review was conducted for {client_name}, covering the {remote_access_solution}
-  deployment. The assessment reviewed controls used to secure remote access services and protect access to
-  internal systems and data.
+  deployment. The assessment reviewed the effectiveness of controls used to secure remote access services and
+  protect access to internal systems and data.
+commentary_findings_intro: >-
+  The assessment identified opportunities for improvement across {areas}. The following sections summarise
+  the relevant findings and security controls reviewed.
+configuration_intro: >-
+  The following table summarises the key characteristics of the remote access deployment assessed.
+remediation_intro: "To maintain the security posture of the remote access solution:"
+maintenance_recommendations:
+- Continue to manage certificates and other authentication materials through documented issuance, renewal,
+  revocation, and retirement processes where applicable.
+- Periodically review remote access routes, network restrictions, and approved exceptions to confirm connectivity
+  remains limited to authorised destinations.
+- Maintain monitoring of remote access activity and administrative actions to support detection and investigation
+  of security-relevant events.
+- Periodically assess remote access cryptographic settings and authentication mechanisms against current vendor
+  guidance and organisational security requirements.
+report_groups:
+  Platform Configuration:
+    executive_summary_label: platform configuration
+    executive_summary_priority: maintaining secure and reliable remote access functionality
+    executive_summary_intro: "The review also considered **remote access platform configuration**."
+    executive_summary_conclusion: These controls help ensure remote connectivity is established consistently
+      and in accordance with operational requirements.
+    commentary_intro: Platform configuration controls were reviewed to determine whether remote connectivity
+      operated as intended.
+    commentary_conclusion: Maintaining appropriate platform configuration supports reliable and secure remote
+      access.
+  Authentication:
+    executive_summary_label: authentication
+    executive_summary_priority: strengthening user and device authentication
+    executive_summary_intro: "Opportunities for improvement were identified in **authentication controls**."
+    executive_summary_conclusion: Strong authentication reduces the likelihood that compromised credentials
+      or untrusted devices can be used to obtain remote access.
+    commentary_intro: Authentication controls determine whether users and devices can establish trusted remote
+      access connections.
+    commentary_conclusion: Appropriate authentication controls help protect remote access from credential
+      compromise and unauthorised use.
+  Administrative Security:
+    executive_summary_label: administrative security
+    executive_summary_priority: strengthening privileged access safeguards
+    executive_summary_intro: "The review also considered **administrative security**."
+    executive_summary_conclusion: Effective privileged access controls help reduce the impact of account misuse
+      and support accountability for administrative actions.
+    commentary_intro: Administrative security controls were assessed for the remote access platform.
+    commentary_conclusion: Appropriate administrative safeguards help protect platform configuration and
+      privileged access.
+  Cryptography:
+    executive_summary_label: cryptographic security
+    executive_summary_priority: maintaining modern cryptographic protections
+    executive_summary_intro: "**Cryptographic security** was also assessed."
+    executive_summary_conclusion: Modern cryptographic settings help protect the confidentiality and integrity
+      of remote access communications.
+    commentary_intro: The review assessed cryptographic protocols and algorithms used to protect remote access
+      communications.
+    commentary_conclusion: Maintaining current cryptographic protections reduces exposure to known protocol
+      and algorithm weaknesses.
+  Access Control:
+    executive_summary_label: access governance and control
+    executive_summary_priority: restricting and periodically reviewing remote access
+    executive_summary_intro: "The assessment identified opportunities to strengthen **access governance and control**."
+    executive_summary_conclusion: These controls help ensure remote access is limited to authorised users,
+      devices, networks, and destinations.
+    commentary_intro: The review considered how remote access permissions and connectivity were restricted
+      and governed.
+    commentary_conclusion: Regular governance helps maintain least-privilege access and reduce unnecessary
+      exposure.
+  Monitoring and Detection:
+    executive_summary_label: monitoring and detection
+    executive_summary_priority: improving remote access monitoring and investigation
+    executive_summary_intro: "**Monitoring and detection** controls were also reviewed."
+    executive_summary_conclusion: Effective logging supports the identification, investigation, and response
+      to security-relevant activity.
+    commentary_intro: Monitoring controls were assessed to determine whether remote access activity and
+      administrative actions could be reviewed.
+    commentary_conclusion: Appropriate logging and review help improve visibility and support incident response.
 context:
 - id: client_name
   label: What is the organisation's name?
@@ -201,6 +285,10 @@ questions:
     enrollment, and other infrastructure services  before user sign-in. Environments relying on device
     tunnels may require  this capability.
   positive: VPN connectivity was available prior to user logon.
+  positive_commentary: VPN connectivity was established automatically before user logon, supporting device-level
+    connectivity and management without requiring user intervention.
+  positive_summary_commentary: Always On VPN connectivity was available before user logon.
+  positive_summary_priority: 6
   guidance:
     common: "Determine whether VPN connectivity is established automatically without \nrequiring users\
       \ to manually launch or connect the VPN. Confirm \nconnectivity is available whenever the device\
@@ -229,6 +317,10 @@ questions:
     authentication provides an additional layer of protection by requiring users to present a second authentication
     factor beyond a password.
   positive: Multi-factor authentication was enforced for all remote access users.
+  positive_commentary: Multi-factor authentication was enforced for remote access users, providing an additional
+    verification step beyond primary credentials.
+  positive_summary_commentary: Multi-factor authentication was enforced for remote access users.
+  positive_summary_priority: 4
   guidance:
     common: "Review the authentication configuration and determine whether all users \nare required to\
       \ complete multi-factor authentication before remote access \nis granted."
@@ -268,6 +360,10 @@ questions:
     access sensitive systems,  or establish persistent access. Multi-factor authentication helps reduce
     the risk of administrative account compromise.
   positive: Multi-factor authentication was enforced for administrative and privileged  accounts.
+  positive_commentary: Administrative and privileged accounts were protected by multi-factor authentication,
+    reducing the risk of unauthorised platform management.
+  positive_summary_commentary: Administrative and privileged accounts were protected by multi-factor authentication.
+  positive_summary_priority: 5
   guidance:
     common: "Review the authentication requirements applied to administrative, \nprivileged, break-glass,\
       \ and platform management accounts. Verify that \nMFA is enforced for all accounts capable of administering\
@@ -295,6 +391,10 @@ questions:
     Failure to enforce device authentication may reduce assurance  that connecting systems are trusted
     and managed.
   positive: Device Tunnel connectivity required machine certificates.
+  positive_commentary: Device Tunnel connections required machine certificate authentication, helping ensure
+    that remote connectivity was established by trusted, managed devices.
+  positive_summary_commentary: Machine certificate authentication was required for Device Tunnel connections.
+  positive_summary_priority: 1
   guidance:
     common: "Determine how Device Tunnel connections authenticate to the VPN service. \nConfirm device\
       \ identity is validated using machine certificates rather \nthan user credentials and verify only\
@@ -394,6 +494,10 @@ questions:
     capabilities, and the consistent enforcement of controls such as multi-factor authentication and conditional
     access policies.
   positive: Remote access authentication was integrated with a central identity provider.
+  positive_commentary: Remote access authentication was integrated with a centrally managed identity provider,
+    supporting consistent identity lifecycle and access governance.
+  positive_summary_commentary: Remote access authentication used a centrally managed identity provider.
+  positive_summary_priority: 5
   guidance:
     common: "Review the configured authentication source and determine whether users \nauthenticate through\
       \ a centrally managed identity platform such as \nMicrosoft Entra ID, Active Directory, or an enterprise\
@@ -427,6 +531,10 @@ questions:
     protection and typically support additional security controls such as multi-factor  authentication
     and centralised identity integration.
   positive: Legacy authentication mechanisms were disabled.
+  positive_commentary: Deprecated and insecure authentication methods were disabled in favour of modern,
+    vendor-supported alternatives.
+  positive_summary_commentary: Deprecated and insecure authentication methods were disabled.
+  positive_summary_priority: 3
   guidance:
     common: Review configured authentication methods and confirm deprecated or  insecure authentication
       mechanisms are not permitted where the platform  supports stronger alternatives. Examples may include
@@ -585,6 +693,10 @@ questions:
   commentary: Protocols such as PPTP are no longer considered suitable for protecting  sensitive organisational
     communications.
   positive: Legacy VPN protocols have been disabled.
+  positive_commentary: Deprecated VPN protocols were disabled, reducing exposure to protocols with known
+    security weaknesses.
+  positive_summary_commentary: Deprecated VPN protocols were disabled.
+  positive_summary_priority: 3
   guidance:
     common: "Review the VPN protocols supported by the platform and verify that \ndeprecated protocols\
       \ such as PPTP are disabled and cannot be used by \nclients."
@@ -606,6 +718,10 @@ questions:
   commentary: Deprecated TLS versions contain known weaknesses and may expose remote  access communications
     to downgrade and cryptographic attacks.
   positive: Remote access communications were restricted to supported TLS versions.
+  positive_commentary: Remote access communications were restricted to supported TLS versions, reducing
+    exposure to weaknesses in deprecated protocol versions.
+  positive_summary_commentary: Remote access communications used supported TLS versions.
+  positive_summary_priority: 3
   guidance:
     common: "Review TLS configuration and confirm that only supported TLS versions are \npermitted for\
       \ VPN communications."
@@ -628,6 +744,10 @@ questions:
   commentary: Weak or deprecated cryptographic algorithms may reduce the confidentiality  and integrity
     of remote access communications and increase the risk of  cryptographic attacks.
   positive: Strong, modern cryptographic algorithms were enforced.
+  positive_commentary: Strong, modern cryptographic algorithms were enforced to protect the confidentiality
+    and integrity of remote access communications.
+  positive_summary_commentary: Strong, modern cryptographic algorithms were enforced.
+  positive_summary_priority: 3
   guidance:
     common: "Review cryptographic configuration including cipher suites, encryption \nalgorithms, integrity\
       \ algorithms, and key exchange settings. Confirm \ndeprecated or weak algorithms are disabled."
@@ -653,6 +773,10 @@ questions:
   commentary: Split tunnelling may expose managed devices to untrusted networks while  simultaneously
     connected to internal resources.
   positive: Split tunnelling was disabled or appropriately controlled.
+  positive_commentary: VPN traffic routing was disabled or appropriately restricted, reducing the risk of
+    unmanaged traffic paths while users were connected to internal resources.
+  positive_summary_commentary: VPN traffic routing was disabled or appropriately restricted.
+  positive_summary_priority: 2
   guidance:
     common: "Review VPN routing behaviour and determine whether split tunnelling is \ndisabled or governed\
       \ through documented restrictions, approved routes, \nand security controls."
@@ -675,6 +799,10 @@ questions:
   commentary: Route validation helps ensure traffic is routed only through approved  network paths and
     reduces the risk of traffic bypassing organisational  security controls.
   positive: Route validation controls were implemented and enforced.
+  positive_commentary: Route restrictions and validation controls were enforced to limit VPN connectivity
+    to approved network paths and destinations.
+  positive_summary_commentary: VPN routes were restricted to approved destinations.
+  positive_summary_priority: 2
   guidance:
     common: "Review which networks and resources are accessible through the VPN. \nConfirm only approved\
       \ routes and destinations are available and that \nunnecessary internal networks are not exposed\
@@ -698,6 +826,10 @@ questions:
   commentary: Devices that fail basic security requirements may retain access to  organisational systems
     and services.
   positive: Device compliance validation was enforced prior to access.
+  positive_commentary: Device compliance or health validation was required before remote access was granted,
+    providing assurance that connecting devices met security requirements.
+  positive_summary_commentary: Device compliance was validated before remote access was granted.
+  positive_summary_priority: 2
   guidance:
     common: "Determine whether devices are evaluated against security requirements \nbefore remote access\
       \ is granted. Examples include compliance policies, \nhealth checks, certificates, patch validation,\
@@ -719,10 +851,15 @@ questions:
   solution: Establish a formal access review process to validate ongoing business need  and remove unnecessary
     permissions.
   theme: Access Control
-  commentary: Access reviews help ensure that users retain only the access required for  their current
-    job responsibilities. Regular reviews reduce the risk of  excessive access, orphaned accounts, and
-    inappropriate access permissions  remaining assigned following role changes.
+  commentary: Remote access permissions were not subject to periodic review. Access reviews help ensure that
+    users retain only the access required for their current job responsibilities. Regular reviews reduce
+    the risk of excessive access, orphaned accounts, and inappropriate permissions remaining assigned
+    following role changes.
   positive: Remote access permissions were reviewed regularly.
+  positive_commentary: Remote access permissions were reviewed periodically to confirm continued business
+    need and alignment with least-privilege principles.
+  positive_summary_commentary: Remote access permissions were periodically reviewed.
+  positive_summary_priority: 5
   guidance:
     common: "Ask how remote access permissions are reviewed, who performs the review, \nhow often it occurs,\
       \ and whether evidence of recent reviews can be \nprovided. Where formal reviews are not performed,\
@@ -867,6 +1004,10 @@ questions:
   commentary: Insufficient logging reduces visibility of suspicious activity,  authentication abuse, and
     security incidents.
   positive: Remote access authentication, connection, and session activity was logged  and retained appropriately.
+  positive_commentary: Authentication, connection, and session activity was logged and retained to support
+    monitoring, audit, and investigation.
+  positive_summary_commentary: Remote access activity was logged and retained appropriately.
+  positive_summary_priority: 4
   guidance:
     common: 'Review whether authentication attempts, connection events,
 
@@ -904,6 +1045,10 @@ questions:
   commentary: A lack of administrative logging reduces accountability and hinders the  investigation of
     configuration changes, security incidents, and misuse of  privileged accounts.
   positive: Administrative actions were logged and retained appropriately.
+  positive_commentary: Administrative actions were logged and retained, supporting accountability and
+    investigation of security-relevant changes.
+  positive_summary_commentary: Administrative activity was logged and retained appropriately.
+  positive_summary_priority: 4
   guidance:
     common: "Review available audit or administrative event logs and determine whether \nconfiguration\
       \ changes, user management activities, policy changes, and \nother privileged actions are recorded\

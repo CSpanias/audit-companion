@@ -49,6 +49,11 @@ class Question(BaseModel):
     commentary_group: str | None = None
     remediation_id: str | None = None
     commentary: str | None = None
+    summary_commentary: str | None = None
+    commentary_paragraph: int | None = Field(default=None, ge=1)
+    positive_commentary: str | None = None
+    positive_summary_commentary: str | None = None
+    positive_summary_priority: int | None = Field(default=None, ge=1)
     evidence: str | None = None
     location: str | None = None
     guidance: dict[str, str] = Field(default_factory=dict)
@@ -63,6 +68,18 @@ class Question(BaseModel):
     sureformat_id_by_scope: dict[str, str] = Field(default_factory=dict)
 
 
+class ReportGroup(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    commentary_label: str | None = None
+    executive_summary_label: str
+    executive_summary_priority: str
+    executive_summary_intro: str
+    executive_summary_conclusion: str
+    commentary_intro: str
+    commentary_conclusion: str
+
+
 class AssessmentPack(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -70,7 +87,17 @@ class AssessmentPack(BaseModel):
     title: str
     version: str
     executive_summary: str | None = None
+    executive_summary_findings_intro: str | None = None
+    executive_summary_conclusion: str | None = None
+    executive_summary_positive_conclusion: str | None = None
+    positive_summary_intro: str | None = None
     commentary_intro: str | None = None
+    commentary_findings_intro: str | None = None
+    configuration_intro: str | None = None
+    remediation_intro: str | None = None
+    maintenance_recommendations: list[str] = Field(default_factory=list)
+    report_scope_field: str | None = None
+    report_groups: dict[str, ReportGroup] = Field(default_factory=dict)
     context: list[ContextField] = Field(default_factory=list)
     questions: list[Question] = Field(min_length=1)
 
@@ -150,6 +177,33 @@ class AssessmentPack(BaseModel):
                     raise ValueError(
                         f"{item.id} uses unknown option(s) for {field_id}"
                     )
+        if self.report_groups:
+            question_groups = {
+                question.commentary_group or question.theme or question.section
+                for question in self.questions
+                if question.commentary_group or question.theme or question.section
+            }
+            if question_groups != set(self.report_groups):
+                raise ValueError(
+                    "Report group definitions must match question report groups"
+                )
+            if any(
+                not (
+                    question.commentary_group
+                    or question.theme
+                    or question.section
+                )
+                for question in self.questions
+            ):
+                raise ValueError(
+                    "Report groups require a report group for every question"
+                )
+        if self.report_scope_field and self.report_scope_field not in known_context_ids:
+            raise ValueError("The report scope field must refer to a context field")
+        if self.report_scope_field and self.context[
+            context_ids.index(self.report_scope_field)
+        ].type not in ("choice", "multi_choice"):
+            raise ValueError("The report scope field must be a choice context field")
         return self
 
 

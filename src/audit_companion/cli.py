@@ -85,12 +85,7 @@ def _run_pack(pack: AssessmentPack, output_dir: Path, csacyber: bool) -> None:
         results,
         report_dir,
         include_json=not csacyber,
-        executive_summary=pack.executive_summary,
-        commentary_intro=pack.commentary_intro,
-        context_labels={
-            field.id: field.report_label or field.label
-            for field in pack.context
-        },
+        report_pack=pack,
     )
     console.print(
         Panel.fit(

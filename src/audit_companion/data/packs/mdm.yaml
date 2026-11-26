@@ -2,14 +2,82 @@ id: mdm
 title: Mobile Device Management Security Assessment
 version: '1.0'
 executive_summary: >-
-  The mobile device management review for {client_name} examines how policies within the {mdm_vendor}
-  environment protect managed {platforms} devices. It considers authentication, device hardening, application
-  governance, data protection, compliance, and lifecycle management. Weak controls can expose corporate
-  information or allow devices that do not meet security requirements to access business resources.
+  A Mobile Device Management (MDM) review was conducted for {client_name}, covering managed {platforms}
+  devices managed through {mdm_vendor}. The assessment considered device compliance requirements,
+  authentication controls, application governance, data protection, and platform-specific security restrictions.
+executive_summary_findings_intro: >-
+  The review identified opportunities for improvement across {areas}.
+executive_summary_conclusion: >-
+  Addressing the identified gaps would further strengthen the organisation's mobile security posture and
+  improve assurance that managed devices remain secure and aligned with organisational requirements.
+executive_summary_positive_conclusion: >-
+  Overall, the assessed configuration provides a sound foundation for securely managing mobile devices and
+  protecting corporate information.
+positive_summary_intro: >-
+  Key strengths included {strengths}. These controls provide a solid security baseline and support the
+  protection of corporate information on managed devices.
 commentary_intro: >-
-  A mobile device management configuration review was conducted for {client_name}, covering {mdm_vendor}
-  policies for managed {platforms} devices. The assessment reviewed how these policies protect device access,
-  corporate information, and access to business resources.
+  A Mobile Device Management (MDM) review was conducted for {client_name}, covering {mdm_vendor} policies
+  for managed {platforms} devices. The assessment reviewed the effectiveness of controls used to secure
+  managed mobile devices and protect corporate information.
+commentary_findings_intro: >-
+  The review identified findings across {areas}. The following sections summarise the control observations
+  and positive practices by platform.
+configuration_intro: >-
+  The assessed mobile device management environment is summarised below.
+remediation_intro: "The following remediation actions are recommended:"
+report_scope_field: platforms
+report_groups:
+  Authentication and Access Control:
+    commentary_label: Authentication and Access Control
+    executive_summary_label: authentication and access control
+    executive_summary_priority: strengthening device authentication requirements
+    executive_summary_intro: "Opportunities for improvement were identified in **authentication and access control**."
+    executive_summary_conclusion: Weak or inconsistent device authentication requirements may increase the risk
+      of unauthorised access to managed devices and locally stored information.
+    commentary_intro: The review identified opportunities to strengthen authentication and access control settings.
+    commentary_conclusion: Strong device authentication controls help protect locally stored information and reduce
+      the risk of unauthorised device access.
+  Application Governance:
+    commentary_label: Application Governance
+    executive_summary_label: application governance
+    executive_summary_priority: strengthening application governance
+    executive_summary_intro: "The assessment also considered **application governance**."
+    executive_summary_conclusion: Appropriate application controls help reduce the risk of unapproved software
+      accessing or disclosing corporate information.
+    commentary_intro: Application access and management controls were reviewed.
+    commentary_conclusion: Maintaining oversight of approved applications supports consistent protection of
+      corporate information across managed devices.
+  Data Protection:
+    commentary_label: Data Protection
+    executive_summary_label: data protection
+    executive_summary_priority: strengthening controls protecting corporate information
+    executive_summary_intro: "Opportunities for improvement were identified in **data protection**."
+    executive_summary_conclusion: These controls help limit unauthorised disclosure or transfer of corporate
+      information from managed devices.
+    commentary_intro: The review considered controls intended to protect corporate information on managed devices.
+    commentary_conclusion: Effective data protection controls reduce exposure if devices or information are lost,
+      accessed, or shared inappropriately.
+  Device Lifecycle and Compliance:
+    commentary_label: Lifecycle and Compliance
+    executive_summary_label: device lifecycle and compliance
+    executive_summary_priority: maintaining supported and compliant devices
+    executive_summary_intro: "**Device lifecycle and compliance** were also reviewed."
+    executive_summary_conclusion: Regular lifecycle oversight helps ensure devices remain supported, visible, and
+      aligned with organisational security requirements.
+    commentary_intro: Findings related to device lifecycle management and compliance oversight.
+    commentary_conclusion: Timely review of device status and lifecycle settings helps maintain assurance over the
+      managed mobile estate.
+  Device Security and Hardening:
+    commentary_label: Device Security and Hardening
+    executive_summary_label: device security and hardening
+    executive_summary_priority: strengthening mobile device hardening
+    executive_summary_intro: "The review identified opportunities to strengthen **device security and hardening**."
+    executive_summary_conclusion: Hardening measures reduce exposure to unauthorised device interaction and help
+      preserve platform security protections.
+    commentary_intro: Device security and platform hardening controls were assessed.
+    commentary_conclusion: Applying appropriate hardening settings helps reduce risks associated with physical
+      access and weakened device protections.
 context:
 - id: client_name
   label: What is the client or tenant name?
@@ -142,6 +210,8 @@ questions:
     which are generally unnecessary for production devices. Its use may weaken device security controls
     and increase the risk of device misconfiguration or misuse.
   positive: Developer Mode was disabled on managed Android devices.
+  positive_summary_commentary: Developer Mode was disabled on managed Android devices.
+  positive_summary_priority: 7
   guidance:
     intune: Devices > Manage Devices > Configuration > Click target policy > Click Edit on Configuration
       Settings > General > Developer Settings
@@ -379,6 +449,8 @@ questions:
     for end users. Restricting their use may encourage continued reliance on shorter or less complex authentication
     methods and reduce the overall effectiveness of device access controls.
   positive: Biometric authentication was permitted on managed devices.
+  positive_summary_commentary: Biometric authentication was permitted on managed devices.
+  positive_summary_priority: 6
   guidance:
     ios: Devices > Manage Devices > Configuration > Click target policy > Click Edit on Configuration
       Settings > Password > Block Touch ID and Face ID unlock
@@ -406,6 +478,8 @@ questions:
     Unrestricted application installation may increase exposure to vulnerable applications, unnecessary
     software, or applications which introduce additional risks to corporate information.
   positive: Application marketplace access was controlled through approved software catalogues and policies.
+  positive_summary_commentary: Application marketplaces were restricted to approved applications.
+  positive_summary_priority: 4
   guidance:
     ios: Devices > Manage Devices > Configuration > Click target policy > Click Edit on Configuration
       Settings > App Store, Doc Viewing, Gaming > Block App store
@@ -436,6 +510,8 @@ questions:
     data through the paired system. Restricting host pairing helps reduce the likelihood of unauthorised
     access to information stored on or accessible from managed devices.
   positive: Host pairing was restricted, preventing managed devices from pairing with unauthorised computers.
+  positive_summary_commentary: Host pairing was restricted to prevent connections with unauthorised computers.
+  positive_summary_priority: 6
   guidance:
     intune: Devices > Manage Devices > Configuration > Click target policy > Click Edit on Configuration
       Settings > Connected Devices > Block pairing with non-Configurator hosts
@@ -518,6 +594,8 @@ questions:
     devices may increase the likelihood of device compromise, unauthorised software installation, and
     exposure of corporate information.
   positive: Jailbroken and rooted devices were detected and prevented from accessing corporate resources.
+  positive_summary_commentary: Jailbroken and rooted devices were prevented from accessing corporate resources.
+  positive_summary_priority: 1
   guidance:
     intune: Devices > Manage Devices > Compliance > Click target policy > Properties > Click Edit on Compliance
       settings > Device Health > Jailbroken or Rooted Devices
@@ -547,6 +625,8 @@ questions:
     may be exposed to known security issues. This may reduce assurance that corporate information is being
     processed on devices that meet current security expectations.
   positive: The minimum supported operating system version continued to receive vendor security updates.
+  positive_summary_commentary: Minimum operating system requirements were aligned with vendor security support.
+  positive_summary_priority: 8
   guidance:
     ios: 'Check the latest versions: https://endoflife.date/ios'
     android: 'Check the latest versions: https://endoflife.date/android'
@@ -786,6 +866,8 @@ questions:
     loss, theft, or compromise. The absence of enforced encryption may increase the likelihood of sensitive
     information being accessed by unauthorised parties.
   positive: Device encryption was enforced and verified on managed Android devices.
+  positive_summary_commentary: Device encryption was enforced and verified on managed Android devices.
+  positive_summary_priority: 5
   guidance:
     intune: Devices > Compliance > Click on target policy > Properties > Click Edit on Compliance settings
       > System Security > Require encryption of data storage on device
@@ -849,6 +931,8 @@ questions:
     removal, or other lifecycle controls  after a defined period of inactivity.'
   positive: Inactive devices were automatically identified and managed through a defined device clean-up
     process.
+  positive_summary_commentary: Inactive devices were identified and managed through a defined clean-up process.
+  positive_summary_priority: 8
   guidance:
     intune: Devices > Organize devices > Device clean-up rules > Click target rule > Check Rule settings
   applies_when:
@@ -875,6 +959,8 @@ questions:
     stolen, compromised, or retired. Without remote wipe functionality, the organisation may have limited
     options for protecting information stored on devices that are no longer under its direct control.
   positive: Remote wipe functionality was available and could be executed for managed devices.
+  positive_summary_commentary: Remote wipe functionality was available for managed devices.
+  positive_summary_priority: 2
   guidance:
     intune: Devices > Android / Apple mobile > Select a device > Overview > Remote Actions > Wipe (factory
       reset)
