@@ -152,6 +152,16 @@ def test_interview_collects_setup_before_conditioned_context_and_questions() -> 
     assert all(output[index + 1] == "" for index in context_headers)
     assert output[output.index("  2. Android") + 1] == ""
     assert output[output.index("Is the shared control enabled?") + 1] == ""
+    first_question_index = output.index("Is the shared control enabled?")
+    assert output[first_question_index - 2 : first_question_index] == [
+        "[1/2]",
+        "",
+    ]
+    second_question_index = output.index("Is the iOS control enabled?")
+    assert output[second_question_index - 2 : second_question_index] == [
+        "[2/2]",
+        "",
+    ]
     assert output.count("") >= len(results.context) + len(results.responses)
 
 

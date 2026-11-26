@@ -233,6 +233,7 @@ def conduct_review(
 
     for current, (question, scope) in enumerate(question_instances, start=1):
         emit(f"[{current}/{len(question_instances)}]", output_fn, "bold cyan")
+        emit("", output_fn)
         emit(question.question, output_fn, "bold")
         emit("", output_fn)
         if scope:
