@@ -179,6 +179,10 @@ def test_mdm_report_groups_findings_and_positive_controls_by_platform(
     assert "Positive Observations" in commentary
     assert "Key strengths included" in summary
     assert "receive security updates from the device vendor" in commentary
+    assert (
+        "<p>Lifecycle and Compliance. Findings related to device lifecycle "
+        "management and compliance oversight.</p>"
+    ) in commentary
     assert "Non-compliant enrolled devices" not in html_report
     assert "Default and system applications" not in html_report
     assert "<h4>" not in html_report
@@ -456,3 +460,50 @@ def test_html_export_can_omit_json_for_xml_mode(minimal_pack, tmp_path) -> None:
     assert html_path.is_file()
     assert not (tmp_path / "example-access-review-findings.json").exists()
     assert not (tmp_path / "example-access-review-report.md").exists()
+
+
+@pytest.mark.parametrize("pack_id", ["mdm", "remote-access", "voip"])
+def test_builtin_reports_share_plain_emphasis_and_nested_references(
+    pack_id,
+    tmp_path,
+) -> None:
+    pack = load_builtin_pack(pack_id)
+    context: dict[str, str | list[str]] = {"client_name": "Example"}
+    if pack_id == "mdm":
+        context.update(
+            {
+                "platforms": ["iOS", "Android"],
+                "mdm_vendor": "Microsoft Intune",
+            }
+        )
+    elif pack_id == "remote-access":
+        context["remote_access_solution"] = "Microsoft Always On VPN"
+    else:
+        context.update(
+            {
+                "voip_solution": "AudioCodes",
+                "device_type": "Session Border Controller (SBC)",
+            }
+        )
+    results = build_results(pack, context, {}, [])
+
+    _, html_path = export_results(results, tmp_path, report_pack=pack)
+    html_report = html_path.read_text(encoding="utf-8")
+    commentary = html_report.split("<h2>Commentary</h2>", 1)[1].split(
+        "<h2>Remediation</h2>",
+        1,
+    )[0]
+    remediation = html_report.split("<h2>Remediation</h2>", 1)[1].split(
+        "</section>",
+        1,
+    )[0]
+
+    assert "<strong>" not in html_report
+    assert "**" not in html_report
+    assert "font-weight: normal" in html_report
+    assert "Configuration Summary" not in commentary
+    assert "<table>" in commentary
+    assert "<h2>References</h2>" not in html_report
+    assert "<h3>References</h3>" in remediation
+    assert "\n## References\n" not in html_report
+    assert "### References" in remediation

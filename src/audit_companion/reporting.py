@@ -859,10 +859,12 @@ def _render_scoped_commentary(
                 )
             if paragraphs:
                 sections.append(
-                    "<p>"
-                    f"{escape(label)}. "
-                    f"{_render_inline_text(' '.join(paragraphs))}"
-                    "</p>"
+                    f"<p>{escape(label)}. "
+                    f"{_render_inline_text(paragraphs[0])}</p>"
+                )
+                sections.extend(
+                    f"<p>{_render_inline_text(paragraph)}</p>"
+                    for paragraph in paragraphs[1:]
                 )
         positive_narratives = _positive_narratives(scope_positives)
         if positive_narratives:
@@ -1091,9 +1093,9 @@ def _scoped_commentary_markdown(
                     _split_paragraphs(report_group.commentary_conclusion)
                 )
             if paragraphs:
-                lines.extend(
-                    (f"{label}. {' '.join(paragraphs)}", "")
-                )
+                lines.extend((f"{label}. {paragraphs[0]}", ""))
+                for paragraph in paragraphs[1:]:
+                    lines.extend((paragraph, ""))
         positive_narratives = _positive_narratives(scope_positives)
         if positive_narratives:
             lines.extend(
