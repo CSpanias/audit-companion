@@ -3,13 +3,14 @@ title: Remote Access Security Assessment
 version: '1.0'
 executive_summary: >-
   A remote access configuration review was conducted for {client_name}, covering the {remote_access_solution}
-  deployment. The assessment considered authentication controls, cryptographic standards, access governance,
-  monitoring, and solution-specific security functionality.
+  deployment, to assess the effectiveness of controls protecting remote connections to internal systems and
+  data. The assessment evaluated authentication, cryptographic protections, access governance, monitoring,
+  and solution-specific security functionality.
 executive_summary_findings_intro: >-
-  The assessment identified opportunities for improvement across {areas}.
+  The assessment identified opportunities to strengthen security across {areas}.
 executive_summary_conclusion: >-
-  Addressing the identified observations would strengthen the ongoing governance of remote access permissions
-  and provide greater assurance that access remains aligned with business requirements.
+  Addressing the identified gaps would strengthen the security and ongoing governance of the remote access
+  environment and provide greater assurance that access remains aligned with business requirements.
 executive_summary_positive_conclusion: >-
   Overall, the assessed remote access environment demonstrated a strong security posture and a sound foundation
   for protecting remote connectivity.

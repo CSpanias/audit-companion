@@ -9,9 +9,8 @@ executive_summary: >-
 executive_summary_findings_intro: >-
   The assessment identified opportunities to strengthen security across {areas}.
 executive_summary_conclusion: >-
-  Priority should be given to {priorities}. Addressing these areas would strengthen the security posture and
-  operational resilience of the VoIP environment and provide greater assurance over business-critical telephony
-  services.
+  Addressing the identified gaps would strengthen the security posture and operational resilience of the VoIP
+  environment and provide greater assurance over business-critical telephony services.
 commentary_intro: |
   A VoIP security configuration review was conducted for {client_name}, covering the {voip_solution}
   platform and its {device_type} component. The assessment evaluated controls relating to platform security,

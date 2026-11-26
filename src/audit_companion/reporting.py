@@ -391,36 +391,6 @@ def _executive_summary_paragraphs(
                 paragraphs.extend(
                     _split_paragraphs(findings_intro.format_map(group_values))
                 )
-            for group, observations in grouped_findings.items():
-                report_group = report_groups[group]
-                summaries = [
-                    " ".join(
-                        str(
-                            item.get("summary_commentary")
-                            or item.get("description")
-                            or ""
-                        ).split()
-                    )
-                    for item in sorted(
-                        observations,
-                        key=lambda item: (
-                            item.get("commentary_paragraph")
-                            if isinstance(item.get("commentary_paragraph"), int)
-                            else 0
-                        ),
-                    )
-                ]
-                summary = " ".join(value for value in summaries if value)
-                group_paragraph = " ".join(
-                    part
-                    for part in (
-                        report_group.executive_summary_intro,
-                        summary,
-                        report_group.executive_summary_conclusion,
-                    )
-                    if part
-                )
-                paragraphs.extend(_split_paragraphs(group_paragraph))
             if conclusion:
                 paragraphs.extend(
                     _split_paragraphs(conclusion.format_map(group_values))
@@ -918,10 +888,17 @@ def _commentary_groups(
 
 
 def _commentary_narrative(observation: dict[str, object]) -> str:
-    narrative = str(observation.get("commentary") or "").strip()
-    if not narrative:
-        narrative = str(observation.get("description") or "").strip()
-    narrative = " ".join(narrative.split())
+    description = " ".join(str(observation.get("description") or "").split())
+    commentary = " ".join(str(observation.get("commentary") or "").split())
+    if not description:
+        narrative = commentary
+    elif (
+        not commentary
+        or description.rstrip(".!?").casefold() in commentary.casefold()
+    ):
+        narrative = commentary or description
+    else:
+        narrative = f"{description} {commentary}"
     if narrative and not narrative.endswith((".", "!", "?")):
         narrative += "."
     return narrative
@@ -931,12 +908,12 @@ def _commentary_paragraphs(
     observations: list[dict[str, object]],
 ) -> list[str]:
     grouped: dict[tuple[str, object], list[str]] = {}
-    for observation in observations:
+    for index, observation in enumerate(observations):
         paragraph_id = observation.get("commentary_paragraph")
         if isinstance(paragraph_id, int):
             key = ("paragraph", paragraph_id)
         else:
-            key = ("section", observation.get("section") or "general")
+            key = ("observation", index)
         grouped.setdefault(key, []).append(_commentary_narrative(observation))
     keys = list(grouped)
     if all(key[0] == "paragraph" for key in keys):

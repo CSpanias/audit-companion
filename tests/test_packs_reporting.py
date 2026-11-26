@@ -76,7 +76,8 @@ def test_assessment_exports_html_and_json(minimal_pack, tmp_path) -> None:
     )
     assert "&lt;script&gt;Review the MFA configuration.&lt;/script&gt;" in html_report
     assert "Scope:" not in commentary
-    assert "Remote access can be used without multi-factor authentication." not in (
+    assert "Multi-factor authentication is not consistently required." in commentary
+    assert "Remote access can be used without multi-factor authentication." in (
         commentary
     )
     assert "<h4>" not in html_report
@@ -115,7 +116,7 @@ def test_mdm_summary_reflects_selected_platforms(tmp_path) -> None:
         1,
     )[0]
 
-    assert "managed iOS devices" in summary
+    assert "iOS devices managed through" in summary
     assert "managed Android devices" not in summary
 
 
@@ -178,6 +179,11 @@ def test_mdm_report_groups_findings_and_positive_controls_by_platform(
     assert "**" not in html_report
     assert "Positive Observations" in commentary
     assert "Key strengths included" in summary
+    assert (
+        "to assess the effectiveness of controls protecting corporate information"
+        in summary
+    )
+    assert "Addressing the identified gaps would strengthen" in summary
     assert "receive security updates from the device vendor" in commentary
     assert (
         "<p>Lifecycle and Compliance. Findings related to device lifecycle "
@@ -206,6 +212,10 @@ def test_remote_access_report_narrates_aovpn_controls_and_ongoing_actions(
         },
         {},
         [
+            QuestionResponse(
+                question_id="aovpn-prelogon-connectivity-disabled",
+                answer="non_compliant",
+            ),
             QuestionResponse(
                 question_id="aovpn-device-authentication-not-enforced",
                 answer="compliant",
@@ -241,6 +251,10 @@ def test_remote_access_report_narrates_aovpn_controls_and_ongoing_actions(
         "<h2>Remediation</h2>",
         1,
     )[0]
+    summary = html_report.split("<h2>Executive Summary</h2>", 1)[1].split(
+        "<h2>Commentary</h2>",
+        1,
+    )[0]
     remediation = html_report.split("<h2>Remediation</h2>", 1)[1].split(
         "</section>",
         1,
@@ -250,6 +264,21 @@ def test_remote_access_report_narrates_aovpn_controls_and_ongoing_actions(
     assert "<strong>" not in html_report
     assert "**" not in html_report
     assert (
+        "to assess the effectiveness of controls protecting remote connections"
+        in summary
+    )
+    assert "Addressing the identified gaps would strengthen the security" in summary
+    assert "VPN connectivity was not available before user authentication" not in (
+        summary
+    )
+    assert "Remote access permissions were not subject to periodic review" not in (
+        summary
+    )
+    assert (
+        "VPN connectivity was not available before user authentication. "
+        "Pre-logon VPN connectivity supports device management"
+    ) in commentary
+    assert (
         "Device Tunnel connections required machine certificate authentication"
         in commentary
     )
@@ -257,7 +286,7 @@ def test_remote_access_report_narrates_aovpn_controls_and_ongoing_actions(
     assert "Strong, modern cryptographic algorithms were enforced" in commentary
     assert "Remote access permissions were not subject to periodic review" in commentary
     remediation_actions = remediation.split("<h3>References</h3>", 1)[0]
-    assert remediation_actions.count("<li>") == 5
+    assert remediation_actions.count("<li>") == 6
     assert "Establish a formal access review process" in remediation
     assert "AES-128" not in html_report
     assert "Perfect Forward Secrecy" not in html_report
@@ -447,6 +476,10 @@ def test_voip_summary_only_describes_groups_with_findings(tmp_path) -> None:
     )[0]
 
     assert "platform lifecycle management" in summary
+    assert (
+        "Addressing the identified gaps would strengthen the security posture"
+        in summary
+    )
     assert "authentication and identity" not in summary
     assert "security monitoring" not in summary
 

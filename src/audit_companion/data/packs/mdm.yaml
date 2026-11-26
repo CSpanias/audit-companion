@@ -2,14 +2,15 @@ id: mdm
 title: Mobile Device Management Security Assessment
 version: '1.0'
 executive_summary: >-
-  A Mobile Device Management (MDM) review was conducted for {client_name}, covering managed {platforms}
-  devices managed through {mdm_vendor}. The assessment considered device compliance requirements,
-  authentication controls, application governance, data protection, and platform-specific security restrictions.
+  A Mobile Device Management (MDM) review was conducted for {client_name}, covering {platforms} devices managed
+  through {mdm_vendor}, to assess the effectiveness of controls protecting corporate information and access
+  to business resources. The assessment evaluated device compliance, authentication, application governance,
+  data protection, and platform-specific security controls.
 executive_summary_findings_intro: >-
-  The review identified opportunities for improvement across {areas}.
+  The assessment identified opportunities to strengthen the security of managed mobile devices across {areas}.
 executive_summary_conclusion: >-
-  Addressing the identified gaps would further strengthen the organisation's mobile security posture and
-  improve assurance that managed devices remain secure and aligned with organisational requirements.
+  Addressing the identified gaps would strengthen the organisation's mobile security posture and improve
+  assurance that managed devices remain secure and aligned with organisational requirements.
 executive_summary_positive_conclusion: >-
   Overall, the assessed configuration provides a sound foundation for securely managing mobile devices and
   protecting corporate information.
