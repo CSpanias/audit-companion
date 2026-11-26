@@ -120,7 +120,7 @@ def test_mdm_summary_reflects_selected_platforms(tmp_path) -> None:
     assert "managed Android devices" not in summary
 
 
-def test_mdm_report_groups_findings_and_positive_controls_by_platform(
+def test_mdm_report_groups_findings_by_domain_and_identifies_platforms(
     tmp_path,
 ) -> None:
     pack = load_builtin_pack("mdm")
@@ -171,28 +171,101 @@ def test_mdm_report_groups_findings_and_positive_controls_by_platform(
         1,
     )[0]
 
-    assert "<h3>iOS Devices</h3>" in commentary
-    assert "<h3>Android Devices</h3>" in commentary
-    assert "Device Security and Hardening." in commentary
-    assert "Lifecycle and Compliance." in commentary
+    assert "<h3>iOS Devices</h3>" not in commentary
+    assert "<h3>Android Devices</h3>" not in commentary
+    assert "<h3>Device Security and Hardening</h3>" in commentary
+    assert "<h3>Device Lifecycle and Compliance</h3>" in commentary
     assert "<strong>" not in html_report
     assert "**" not in html_report
-    assert "Positive Observations" in commentary
+    assert "<h3>Positive Security Controls</h3>" in commentary
     assert "Key strengths included" in summary
     assert (
         "to assess the effectiveness of controls protecting corporate information"
         in summary
     )
-    assert "Addressing the identified gaps would strengthen" in summary
+    assert "Addressing these areas would improve assurance" in summary
+    assert "iOS:" in commentary
+    assert "Android:" in commentary
     assert "receive security updates from the device vendor" in commentary
     assert (
-        "<p>Lifecycle and Compliance. Findings related to device lifecycle "
-        "management and compliance oversight.</p>"
+        "Lifecycle and compliance controls were assessed to determine whether "
+        "devices remained secure"
     ) in commentary
+    assert "<h3>Conclusion</h3>" in commentary
     assert "Non-compliant enrolled devices" not in html_report
     assert "Default and system applications" not in html_report
     assert "<h4>" not in html_report
     assert "positive_summary_commentary" not in exported["positive_observations"][0]
+
+
+def test_mdm_remediation_is_grouped_and_deduplicated(tmp_path) -> None:
+    from audit_companion.engine import expand_question_scopes
+
+    pack = load_builtin_pack("mdm")
+    context = {
+        "client_name": "Example",
+        "platforms": ["iOS", "Android"],
+        "mdm_vendor": "Microsoft Intune",
+    }
+    question_instances = expand_question_scopes(
+        pack.questions,
+        context,
+        pack.interview_scope_field,
+    )
+    results = build_results(
+        pack,
+        context,
+        {},
+        [
+            QuestionResponse(
+                question_id=question.id,
+                answer="non_compliant",
+                scope=scope,
+            )
+            for question, scope in question_instances
+        ],
+    )
+
+    _, html_path = export_results(results, tmp_path, report_pack=pack)
+    html_report = html_path.read_text(encoding="utf-8")
+    summary = html_report.split("<h2>Executive Summary</h2>", 1)[1].split(
+        "<h2>Commentary</h2>",
+        1,
+    )[0]
+    commentary = html_report.split("<h2>Commentary</h2>", 1)[1].split(
+        "<h2>Remediation</h2>",
+        1,
+    )[0]
+    remediation = html_report.split("<h2>Remediation</h2>", 1)[1].split(
+        "<h3>References</h3>",
+        1,
+    )[0]
+    markdown = html_report.split(
+        'id="remediation-markdown" hidden>',
+        1,
+    )[1].split("</pre>", 1)[0]
+
+    assert remediation.count("<h3>") == 5
+    assert remediation.count("<li>") == 18
+    assert "A significant theme related to authentication" in summary
+    assert "strengthen enforcing" not in summary
+    assert "Device authentication was not enforced across managed devices." in (
+        commentary
+    )
+    assert "Managed devices were not required to use a passcode" not in commentary
+    assert "### Authentication and Access Control" in html_report
+    assert "### Application Governance" in html_report
+    assert "### Device Security and Hardening" in html_report
+    assert "### Data Protection" in html_report
+    assert "### Device Lifecycle and Compliance" in html_report
+    visible_remediation = remediation.split("</pre>", 1)[1]
+    assert visible_remediation.count(
+        "Require device authentication through a passcode, PIN, password, or approved"
+    ) == 1
+    assert "iOS and Android" in html_report
+    assert "no evidence of compromise" not in html_report.casefold()
+    assert "### Authentication and Access Control" in markdown
+    assert markdown.count("\n- ") == 18
 
 
 def test_remote_access_report_narrates_aovpn_controls_and_ongoing_actions(
@@ -264,16 +337,17 @@ def test_remote_access_report_narrates_aovpn_controls_and_ongoing_actions(
     assert "<strong>" not in html_report
     assert "**" not in html_report
     assert (
-        "to assess the effectiveness of controls protecting remote connections"
+        "to assess the effectiveness of controls protecting remote connectivity"
         in summary
     )
-    assert "Addressing the identified gaps would strengthen the security" in summary
-    assert "VPN connectivity was not available before user authentication" not in (
+    assert "Priority should be given to" in summary
+    assert "VPN connectivity was not available before user authentication" in (
         summary
     )
-    assert "Remote access permissions were not subject to periodic review" not in (
+    assert "Remote access permissions were not subject to periodic review" in (
         summary
     )
+    assert "<h3>Access Governance and Control</h3>" in commentary
     assert (
         "VPN connectivity was not available before user authentication. "
         "Pre-logon VPN connectivity supports device management"
@@ -285,6 +359,10 @@ def test_remote_access_report_narrates_aovpn_controls_and_ongoing_actions(
     assert "Route restrictions and validation controls were enforced" in commentary
     assert "Strong, modern cryptographic algorithms were enforced" in commentary
     assert "Remote access permissions were not subject to periodic review" in commentary
+    assert "Regular governance helps maintain least-privilege access" not in commentary
+    assert "Appropriate authentication controls help protect remote access" not in (
+        commentary
+    )
     remediation_actions = remediation.split("<h3>References</h3>", 1)[0]
     assert remediation_actions.count("<li>") == 6
     assert "Establish a formal access review process" in remediation
@@ -292,6 +370,82 @@ def test_remote_access_report_narrates_aovpn_controls_and_ongoing_actions(
     assert "Perfect Forward Secrecy" not in html_report
     assert "summary_commentary" not in exported["findings"][0]
     assert "positive_commentary" not in exported["positive_observations"][0]
+
+
+def test_remote_access_summary_covers_noncompliant_controls_by_domain(
+    tmp_path,
+) -> None:
+    pack = load_builtin_pack("remote-access")
+    question_ids = (
+        "aovpn-prelogon-connectivity-disabled",
+        "user-mfa-not-enforced",
+        "admin-mfa-not-enforced",
+        "aovpn-device-authentication-not-enforced",
+        "shared-accounts-permitted",
+        "local-accounts-enabled",
+        "vpn-weak-authentication-methods",
+        "vpn-insecure-protocol-enabled",
+        "weak-tls-configuration",
+        "weak-cryptography",
+        "vpn-unrestricted-split-tunnelling",
+        "aovpn-route-validation-not-enforced",
+        "device-compliance-not-enforced",
+        "user-access-not-reviewed",
+        "users-can-modify-vpn-configuration",
+        "insufficient-logging",
+        "admin-activity-not-retained-or-reviewed",
+    )
+    results = build_results(
+        pack,
+        {
+            "client_name": "Example Council",
+            "remote_access_solution": "Microsoft Always On VPN",
+        },
+        {},
+        [
+            QuestionResponse(question_id=question_id, answer="non_compliant")
+            for question_id in question_ids
+        ],
+    )
+
+    _, html_path = export_results(results, tmp_path, report_pack=pack)
+    html_report = html_path.read_text(encoding="utf-8")
+    summary = html_report.split("<h2>Executive Summary</h2>", 1)[1].split(
+        "<h2>Commentary</h2>",
+        1,
+    )[0]
+    commentary = html_report.split("<h2>Commentary</h2>", 1)[1].split(
+        "<h2>Remediation</h2>",
+        1,
+    )[0]
+
+    for observation in (
+        "VPN connectivity was not available before user authentication.",
+        "Multi-factor authentication was not enforced for remote access users.",
+        "Multi-factor authentication was not enforced for privileged administrators.",
+        "Legacy VPN protocols remained enabled despite known security weaknesses.",
+        "Deprecated TLS versions remained supported for remote access communications.",
+        "Route validation controls were not enforced for VPN traffic.",
+        "Remote access activity was not adequately logged or retained.",
+        "Administrative activity was not adequately logged or retained.",
+    ):
+        assert observation in summary
+    assert "A key theme related to authentication and identity management." in summary
+    assert "The review further identified limitations in monitoring and audit capabilities." in (
+        summary
+    )
+    assert "No non-compliant responses were recorded" not in summary
+
+    authentication = commentary.split(
+        "<h3>Authentication and Identity Security</h3>",
+        1,
+    )[1].split("<h3>", 1)[0]
+    assert authentication.count("<p>") == 4
+    assert "Multi-factor authentication was not enforced for remote access users." in (
+        authentication
+    )
+    assert "<h3>Conclusion</h3>" in commentary
+    assert "strengthen strengthening" not in commentary
 
 
 def test_commentary_includes_positive_controls_and_global_references(

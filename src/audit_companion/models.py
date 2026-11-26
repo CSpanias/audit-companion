@@ -77,7 +77,14 @@ class ReportGroup(BaseModel):
     executive_summary_intro: str
     executive_summary_conclusion: str
     commentary_intro: str
-    commentary_conclusion: str
+    commentary_conclusion: str = ""
+
+
+class RemediationRule(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    remediation_ids: list[str] = Field(min_length=1)
+    action: str = Field(min_length=1)
 
 
 class AssessmentPack(BaseModel):
@@ -93,9 +100,14 @@ class AssessmentPack(BaseModel):
     positive_summary_intro: str | None = None
     commentary_intro: str | None = None
     commentary_findings_intro: str | None = None
+    commentary_conclusion: str | None = None
+    include_description_in_commentary: bool = True
     configuration_intro: str | None = None
     remediation_intro: str | None = None
     maintenance_recommendations: list[str] = Field(default_factory=list)
+    remediation_groups: dict[str, list[RemediationRule]] = Field(
+        default_factory=dict
+    )
     report_scope_field: str | None = None
     interview_scope_field: str | None = None
     report_groups: dict[str, ReportGroup] = Field(default_factory=dict)
@@ -199,6 +211,40 @@ class AssessmentPack(BaseModel):
                 raise ValueError(
                     "Report groups require a report group for every question"
                 )
+        if self.remediation_groups:
+            known_groups = {
+                question.commentary_group or question.theme or question.section
+                for question in self.questions
+            }
+            unknown_groups = set(self.remediation_groups) - known_groups
+            if unknown_groups:
+                raise ValueError(
+                    "Remediation groups must refer to question groups: "
+                    f"{', '.join(sorted(unknown_groups))}"
+                )
+            for group, rules in self.remediation_groups.items():
+                known_remediation_ids = {
+                    question.remediation_id
+                    for question in self.questions
+                    if question.remediation_id
+                    and (
+                        question.commentary_group
+                        or question.theme
+                        or question.section
+                    )
+                    == group
+                }
+                configured_ids = {
+                    remediation_id
+                    for rule in rules
+                    for remediation_id in rule.remediation_ids
+                }
+                unknown_ids = configured_ids - known_remediation_ids
+                if unknown_ids:
+                    raise ValueError(
+                        f"Remediation rules for {group} refer to unknown ids: "
+                        f"{', '.join(sorted(unknown_ids))}"
+                    )
         if self.report_scope_field and self.report_scope_field not in known_context_ids:
             raise ValueError("The report scope field must refer to a context field")
         if self.report_scope_field and self.context[

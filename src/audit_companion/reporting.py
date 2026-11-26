@@ -2,13 +2,18 @@
 
 import json
 import re
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from html import escape
 from pathlib import Path
 from urllib.parse import urlparse
 
 from audit_companion.engine import applies, expand_question_scopes
-from audit_companion.models import AssessmentPack, AssessmentResults, ReportGroup
+from audit_companion.models import (
+    AssessmentPack,
+    AssessmentResults,
+    RemediationRule,
+    ReportGroup,
+)
 
 
 def export_results(
@@ -40,6 +45,8 @@ def export_results(
     positive_summary_intro = None
     positive_summary_conclusion = None
     maintenance_recommendations: list[str] = []
+    remediation_groups: Mapping[str, list[RemediationRule]] = {}
+    commentary_conclusion = None
     report_scope_field = None
     assessment_complete = False
     if report_pack:
@@ -54,10 +61,12 @@ def export_results(
         )
         commentary_intro = report_pack.commentary_intro
         commentary_findings_intro = report_pack.commentary_findings_intro
+        commentary_conclusion = report_pack.commentary_conclusion
         configuration_intro = report_pack.configuration_intro
         remediation_intro = report_pack.remediation_intro
         report_groups = report_pack.report_groups
         maintenance_recommendations = report_pack.maintenance_recommendations
+        remediation_groups = report_pack.remediation_groups
         report_scope_field = report_pack.report_scope_field
         assessment_complete = _assessment_is_complete(results, report_pack)
         context_labels = {
@@ -76,6 +85,9 @@ def export_results(
                     **finding,
                     "summary_commentary": question.summary_commentary,
                     "commentary_paragraph": question.commentary_paragraph,
+                    "include_description_in_commentary": (
+                        report_pack.include_description_in_commentary
+                    ),
                 }
             )
         report_positives = []
@@ -94,6 +106,7 @@ def export_results(
                     "positive_summary_priority": (
                         question.positive_summary_priority
                     ),
+                    "commentary_paragraph": question.commentary_paragraph,
                 }
             )
         render_results = results.model_copy(
@@ -119,6 +132,8 @@ def export_results(
             maintenance_recommendations,
             report_scope_field,
             assessment_complete,
+            commentary_conclusion,
+            remediation_groups,
         ),
         encoding="utf-8",
     )
@@ -141,6 +156,8 @@ def _render_html(
     maintenance_recommendations: list[str] | None = None,
     report_scope_field: str | None = None,
     assessment_complete: bool = False,
+    commentary_conclusion: str | None = None,
+    remediation_groups: Mapping[str, list[RemediationRule]] | None = None,
 ) -> str:
     configuration = _configuration_entries(results, context_labels or {})
     configuration_headers = (
@@ -182,6 +199,11 @@ def _render_html(
         results,
         report_groups,
     )
+    rendered_commentary_conclusion = _format_grouped_findings_text(
+        commentary_conclusion,
+        results,
+        report_groups,
+    )
     rendered_configuration_intro = _format_report_text(configuration_intro, results)
     commentary_html = _render_commentary(
         results.findings,
@@ -193,11 +215,13 @@ def _render_html(
         report_groups,
         report_scope_field,
         results.context.get(report_scope_field) if report_scope_field else None,
+        rendered_commentary_conclusion,
     )
     remediation_html = _render_remediation(
         results.findings,
         remediation_intro,
         maintenance_recommendations or [],
+        remediation_groups or {},
     )
     references = _report_references(results)
     references_html = _render_references(references)
@@ -216,11 +240,13 @@ def _render_html(
         report_groups,
         report_scope_field,
         results.context.get(report_scope_field) if report_scope_field else None,
+        rendered_commentary_conclusion,
     )
     remediation_markdown = _remediation_markdown(
         results.findings,
         remediation_intro,
         maintenance_recommendations or [],
+        remediation_groups or {},
     )
     references_markdown = _references_markdown(references)
     remediation_markdown = "\n\n".join(
@@ -366,7 +392,10 @@ def _executive_summary_paragraphs(
             )
         )
     if results.findings:
-        grouped_findings = _commentary_groups(results.findings)
+        grouped_findings = _ordered_commentary_groups(
+            _commentary_groups(results.findings),
+            report_groups,
+        )
         if report_groups and all(
             group in report_groups for group in grouped_findings
         ):
@@ -391,6 +420,36 @@ def _executive_summary_paragraphs(
                 paragraphs.extend(
                     _split_paragraphs(findings_intro.format_map(group_values))
                 )
+            for group, observations in grouped_findings.items():
+                report_group = report_groups[group]
+                summaries = [
+                    " ".join(
+                        str(
+                            item.get("summary_commentary")
+                            or item.get("description")
+                            or ""
+                        ).split()
+                    )
+                    for item in sorted(
+                        observations,
+                        key=lambda item: (
+                            item.get("commentary_paragraph")
+                            if isinstance(item.get("commentary_paragraph"), int)
+                            else 0
+                        ),
+                    )
+                ]
+                summary = " ".join(dict.fromkeys(value for value in summaries if value))
+                group_paragraph = " ".join(
+                    part
+                    for part in (
+                        report_group.executive_summary_intro,
+                        summary,
+                        report_group.executive_summary_conclusion,
+                    )
+                    if part
+                )
+                paragraphs.extend(_split_paragraphs(group_paragraph))
             if conclusion:
                 paragraphs.extend(
                     _split_paragraphs(conclusion.format_map(group_values))
@@ -536,35 +595,39 @@ def _format_findings_intro(
     results: AssessmentResults,
     report_groups: Mapping[str, ReportGroup],
 ) -> str:
+    return _format_grouped_findings_text(template, results, report_groups)
+
+
+def _format_grouped_findings_text(
+    template: str | None,
+    results: AssessmentResults,
+    report_groups: Mapping[str, ReportGroup],
+) -> str:
     if not template or not results.findings:
         return ""
-    areas = _finding_area_labels(results.findings, report_groups)
-    if not areas:
-        return ""
-    values = {**_report_template_values(results), "areas": _human_list(areas)}
-    return template.format_map(values)
-
-
-def _finding_area_labels(
-    findings: list[dict[str, object]],
-    report_groups: Mapping[str, ReportGroup],
-) -> list[str]:
-    groups = []
-    for finding in findings:
-        group = str(
-            finding.get("commentary_group")
-            or finding.get("theme")
-            or finding.get("section")
-            or ""
-        ).strip()
-        if group and group not in groups:
-            groups.append(group)
-    return [
+    grouped_findings = _ordered_commentary_groups(
+        _commentary_groups(results.findings),
+        report_groups,
+    )
+    areas = [
         report_groups[group].executive_summary_label
         if group in report_groups
         else group
-        for group in groups
+        for group in grouped_findings
     ]
+    if not areas:
+        return ""
+    priorities = [
+        report_groups[group].executive_summary_priority
+        for group in grouped_findings
+        if group in report_groups
+    ]
+    values = {
+        **_report_template_values(results),
+        "areas": _human_list(areas),
+        "priorities": _human_list(priorities),
+    }
+    return template.format_map(values)
 
 
 def _split_paragraphs(text: str) -> list[str]:
@@ -674,6 +737,7 @@ def _render_commentary(
     report_groups: Mapping[str, ReportGroup],
     report_scope_field: str | None = None,
     report_scope_values: object = None,
+    conclusion: str = "",
 ) -> str:
     sections = []
     if intro:
@@ -703,12 +767,28 @@ def _render_commentary(
                 report_scope_values,
             )
         )
+        if conclusion:
+            sections.extend(
+                ["<h3>Conclusion</h3>"]
+                + [
+                    f"<p>{_render_inline_text(paragraph)}</p>"
+                    for paragraph in _split_paragraphs(conclusion)
+                ]
+            )
         return "\n".join(sections)
 
-    groups = _commentary_groups(findings)
+    groups = _ordered_commentary_groups(
+        _commentary_groups(findings),
+        report_groups,
+    )
     for group, observations in groups.items():
         report_group = report_groups.get(group)
-        group_sections = [f"<h3>{escape(group)}</h3>"]
+        label = (
+            report_group.commentary_label
+            if report_group and report_group.commentary_label
+            else group
+        )
+        group_sections = [f"<h3>{escape(label)}</h3>"]
         if report_group:
             group_sections.extend(
                 f"<p>{_render_inline_text(paragraph)}</p>"
@@ -737,7 +817,10 @@ def _render_commentary(
                 )
         sections.extend(group_sections)
 
-    positive_groups = _positive_commentary_groups(positive_observations)
+    positive_groups = _ordered_commentary_groups(
+        _positive_commentary_groups(positive_observations),
+        report_groups,
+    )
     positive_without_commentary = [
         observation
         for observation in positive_observations
@@ -747,12 +830,13 @@ def _render_commentary(
     if positive_groups or positive_narratives:
         positive_sections = ["<h3>Positive Security Controls</h3>"]
         for group, observations in positive_groups.items():
-            narrative = " ".join(
-                " ".join(str(item.get("positive_commentary") or "").split())
-                for item in observations
-                if item.get("positive_commentary")
+            narratives = _observation_paragraphs(
+                observations,
+                lambda observation: str(
+                    observation.get("positive_commentary") or ""
+                ),
             )
-            if narrative:
+            for narrative in narratives:
                 positive_sections.append(
                     "<p>"
                     f"{escape(group)}. "
@@ -765,6 +849,12 @@ def _render_commentary(
             )
             positive_sections.append(f"<ul>{positive_items}</ul>")
         sections.extend(positive_sections)
+    if conclusion:
+        sections.append("<h3>Conclusion</h3>")
+        sections.extend(
+            f"<p>{_render_inline_text(paragraph)}</p>"
+            for paragraph in _split_paragraphs(conclusion)
+        )
     if not groups and not positive_narratives:
         if not positive_groups:
             sections.append(
@@ -812,7 +902,10 @@ def _render_scoped_commentary(
             and str(item.get("scope", {}).get(scope_field, "")) == scope_value
         ]
         sections.append(f"<h3>{escape(scope_value)} Devices</h3>")
-        for group, observations in _commentary_groups(scope_findings).items():
+        for group, observations in _ordered_commentary_groups(
+            _commentary_groups(scope_findings),
+            report_groups,
+        ).items():
             report_group = report_groups.get(group)
             label = (
                 report_group.commentary_label
@@ -822,7 +915,7 @@ def _render_scoped_commentary(
             paragraphs = []
             if report_group:
                 paragraphs.extend(_split_paragraphs(report_group.commentary_intro))
-            paragraphs.extend(_commentary_paragraphs(observations))
+            paragraphs.extend(_commentary_paragraphs(observations, include_scope=False))
             if report_group:
                 paragraphs.extend(
                     _split_paragraphs(report_group.commentary_conclusion)
@@ -836,7 +929,10 @@ def _render_scoped_commentary(
                     f"<p>{_render_inline_text(paragraph)}</p>"
                     for paragraph in paragraphs[1:]
                 )
-        positive_narratives = _positive_narratives(scope_positives)
+        positive_narratives = _positive_narratives(
+            scope_positives,
+            include_scope=False,
+        )
         if positive_narratives:
             items = "".join(
                 f"<li>{escape(narrative)}</li>"
@@ -888,8 +984,13 @@ def _commentary_groups(
 
 
 def _commentary_narrative(observation: dict[str, object]) -> str:
-    description = " ".join(str(observation.get("description") or "").split())
     commentary = " ".join(str(observation.get("commentary") or "").split())
+    description = (
+        " ".join(str(observation.get("description") or "").split())
+        if observation.get("include_description_in_commentary", True)
+        or not commentary
+        else ""
+    )
     if not description:
         narrative = commentary
     elif (
@@ -906,19 +1007,77 @@ def _commentary_narrative(observation: dict[str, object]) -> str:
 
 def _commentary_paragraphs(
     observations: list[dict[str, object]],
+    include_scope: bool = True,
 ) -> list[str]:
-    grouped: dict[tuple[str, object], list[str]] = {}
-    for index, observation in enumerate(observations):
+    return _observation_paragraphs(
+        observations,
+        _commentary_narrative,
+        include_scope,
+    )
+
+
+def _observation_paragraphs(
+    observations: list[dict[str, object]],
+    text_for_observation: Callable[[dict[str, object]], str],
+    include_scope: bool = True,
+) -> list[str]:
+    grouped: dict[
+        tuple[str, object],
+        dict[str, list[str]],
+    ] = {}
+    for observation in observations:
+        narrative = " ".join(str(text_for_observation(observation) or "").split())
+        if not narrative:
+            continue
         paragraph_id = observation.get("commentary_paragraph")
-        if isinstance(paragraph_id, int):
-            key = ("paragraph", paragraph_id)
-        else:
-            key = ("observation", index)
-        grouped.setdefault(key, []).append(_commentary_narrative(observation))
+        key = (
+            ("paragraph", paragraph_id)
+            if isinstance(paragraph_id, int)
+            else ("narrative", narrative)
+        )
+        scopes = grouped.setdefault(key, {}).setdefault(narrative, [])
+        scope_label = _observation_scope_label(observation) if include_scope else ""
+        if scope_label and scope_label not in scopes:
+            scopes.append(scope_label)
     keys = list(grouped)
     if all(key[0] == "paragraph" for key in keys):
         keys.sort(key=lambda key: int(key[1]))
-    return [" ".join(grouped[key]) for key in keys]
+    return [
+        " ".join(
+            (
+                f"{_human_list(scopes)}: " if scopes else ""
+            )
+            + narrative
+            for narrative, scopes in grouped[key].items()
+        )
+        for key in keys
+    ]
+
+
+def _observation_scope_label(observation: dict[str, object]) -> str:
+    scope = observation.get("scope")
+    if not isinstance(scope, Mapping):
+        return ""
+    if "platforms" in scope:
+        return str(scope["platforms"])
+    return ", ".join(f"{key}={value}" for key, value in scope.items())
+
+
+def _ordered_commentary_groups(
+    groups: Mapping[str, list[dict[str, object]]],
+    report_groups: Mapping[str, ReportGroup],
+) -> dict[str, list[dict[str, object]]]:
+    ordered = {
+        group: groups[group]
+        for group in report_groups
+        if group in groups
+    }
+    ordered.update(
+        (group, observations)
+        for group, observations in groups.items()
+        if group not in ordered
+    )
+    return ordered
 
 
 def _commentary_markdown(
@@ -932,6 +1091,7 @@ def _commentary_markdown(
     report_groups: Mapping[str, ReportGroup],
     report_scope_field: str | None = None,
     report_scope_values: object = None,
+    conclusion: str = "",
 ) -> str:
     lines = []
     if intro:
@@ -966,11 +1126,26 @@ def _commentary_markdown(
                 report_scope_values,
             )
         )
+        if conclusion:
+            lines.extend(
+                (
+                    "### Conclusion",
+                    "",
+                    "\n\n".join(_split_paragraphs(conclusion)),
+                    "",
+                )
+            )
         return _markdown_section("Commentary", "\n".join(lines).strip())
 
+    groups = _ordered_commentary_groups(groups, report_groups)
     for group, observations in groups.items():
-        lines.append(f"### {group}")
         report_group = report_groups.get(group)
+        label = (
+            report_group.commentary_label
+            if report_group and report_group.commentary_label
+            else group
+        )
+        lines.append(f"### {label}")
         if report_group:
             paragraphs = [
                 *_split_paragraphs(report_group.commentary_intro),
@@ -990,7 +1165,10 @@ def _commentary_markdown(
                 else:
                     lines.append(_commentary_narrative(observation))
                 lines.append("")
-    positive_groups = _positive_commentary_groups(positive_observations)
+    positive_groups = _ordered_commentary_groups(
+        _positive_commentary_groups(positive_observations),
+        report_groups,
+    )
     positive_without_commentary = [
         observation
         for observation in positive_observations
@@ -1000,15 +1178,25 @@ def _commentary_markdown(
     if positive_groups or positive_narratives:
         lines.append("### Positive Security Controls")
         for group, observations in positive_groups.items():
-            narrative = " ".join(
-                " ".join(str(item.get("positive_commentary") or "").split())
-                for item in observations
-                if item.get("positive_commentary")
+            narratives = _observation_paragraphs(
+                observations,
+                lambda observation: str(
+                    observation.get("positive_commentary") or ""
+                ),
             )
-            if narrative:
+            for narrative in narratives:
                 lines.extend((f"{group}. {narrative}", ""))
         lines.extend(f"- {narrative}" for narrative in positive_narratives)
         lines.append("")
+    if conclusion:
+        lines.extend(
+            (
+                "### Conclusion",
+                "",
+                "\n\n".join(_split_paragraphs(conclusion)),
+                "",
+            )
+        )
     if not groups and not positive_narratives and not positive_groups:
         lines.append("No control observations were recorded.")
     body = "\n".join(lines).strip()
@@ -1054,7 +1242,10 @@ def _scoped_commentary_markdown(
             and str(item.get("scope", {}).get(scope_field, "")) == scope_value
         ]
         lines.extend((f"### {scope_value} Devices", ""))
-        for group, group_findings in _commentary_groups(scope_findings).items():
+        for group, group_findings in _ordered_commentary_groups(
+            _commentary_groups(scope_findings),
+            report_groups,
+        ).items():
             report_group = report_groups.get(group)
             label = (
                 report_group.commentary_label
@@ -1064,7 +1255,9 @@ def _scoped_commentary_markdown(
             paragraphs = []
             if report_group:
                 paragraphs.extend(_split_paragraphs(report_group.commentary_intro))
-            paragraphs.extend(_commentary_paragraphs(group_findings))
+            paragraphs.extend(
+                _commentary_paragraphs(group_findings, include_scope=False)
+            )
             if report_group:
                 paragraphs.extend(
                     _split_paragraphs(report_group.commentary_conclusion)
@@ -1073,7 +1266,10 @@ def _scoped_commentary_markdown(
                 lines.extend((f"{label}. {paragraphs[0]}", ""))
                 for paragraph in paragraphs[1:]:
                     lines.extend((paragraph, ""))
-        positive_narratives = _positive_narratives(scope_positives)
+        positive_narratives = _positive_narratives(
+            scope_positives,
+            include_scope=False,
+        )
         if positive_narratives:
             lines.extend(
                 (
@@ -1088,13 +1284,15 @@ def _scoped_commentary_markdown(
     return lines
 
 
-def _positive_narratives(observations: list[dict[str, object]]) -> list[str]:
-    narratives = []
-    for observation in observations:
-        narrative = _commentary_narrative(observation)
-        if narrative and narrative not in narratives:
-            narratives.append(narrative)
-    return narratives
+def _positive_narratives(
+    observations: list[dict[str, object]],
+    include_scope: bool = True,
+) -> list[str]:
+    return _observation_paragraphs(
+        observations,
+        _commentary_narrative,
+        include_scope,
+    )
 
 
 def _remediation_actions(
@@ -1116,18 +1314,101 @@ def _remediation_actions(
     return actions
 
 
+def _remediation_sections(
+    findings: list[dict[str, object]],
+    maintenance_recommendations: list[str] | None,
+    remediation_groups: Mapping[str, list[RemediationRule]],
+) -> list[tuple[str, list[str]]]:
+    if not remediation_groups:
+        actions = _remediation_actions(findings, maintenance_recommendations)
+        return [("", actions)] if actions else []
+
+    sections: list[tuple[str, list[str]]] = []
+    handled_indices: set[int] = set()
+    seen_actions: set[str] = set()
+    for group, rules in remediation_groups.items():
+        group_indices = [
+            index
+            for index, finding in enumerate(findings)
+            if str(
+                finding.get("commentary_group")
+                or finding.get("theme")
+                or finding.get("section")
+                or ""
+            )
+            == group
+        ]
+        if not group_indices:
+            continue
+        present_ids = {
+            str(findings[index].get("remediation_id"))
+            for index in group_indices
+            if findings[index].get("remediation_id")
+        }
+        covered_ids: set[str] = set()
+        actions = []
+        for rule in rules:
+            matched_ids = present_ids.intersection(rule.remediation_ids)
+            if not matched_ids:
+                continue
+            covered_ids.update(matched_ids)
+            action = " ".join(rule.action.split())
+            if action and action not in seen_actions:
+                actions.append(action)
+                seen_actions.add(action)
+        for index in group_indices:
+            finding = findings[index]
+            if str(finding.get("remediation_id") or "") in covered_ids:
+                continue
+            solution = finding.get("solution")
+            action = " ".join(str(solution or "").split())
+            if action and action not in seen_actions:
+                actions.append(action)
+                seen_actions.add(action)
+        handled_indices.update(group_indices)
+        if actions:
+            sections.append((group, actions))
+
+    other_findings = [
+        finding
+        for index, finding in enumerate(findings)
+        if index not in handled_indices
+    ]
+    other_actions = [
+        action
+        for action in _remediation_actions(other_findings)
+        if action not in seen_actions
+    ]
+    if other_actions:
+        sections.append(("Other Recommendations", other_actions))
+        seen_actions.update(other_actions)
+
+    maintenance_actions = [
+        action
+        for action in _remediation_actions([], maintenance_recommendations)
+        if action not in seen_actions
+    ]
+    if maintenance_actions:
+        sections.append(("Ongoing Maintenance", maintenance_actions))
+    return sections
+
+
 def _render_remediation(
     findings: list[dict[str, object]],
     intro: str | None,
     maintenance_recommendations: list[str] | None = None,
+    remediation_groups: Mapping[str, list[RemediationRule]] | None = None,
 ) -> str:
-    actions = _remediation_actions(findings, maintenance_recommendations)
-    if not actions:
+    sections = _remediation_sections(
+        findings,
+        maintenance_recommendations,
+        remediation_groups or {},
+    )
+    if not sections:
         return (
             '<p class="empty">No corrective actions were identified for the '
             "assessed controls.</p>"
         )
-    items = "".join(f"<li>{escape(action)}</li>" for action in actions)
     rendered_intro = (
         f"<p>{_render_inline_text(intro)}</p>"
         if intro
@@ -1136,26 +1417,40 @@ def _render_remediation(
             "support continued security assurance:</p>"
         )
     )
-    return (
-        f"{rendered_intro}<ul>{items}</ul>"
-    )
+    body = []
+    for label, actions in sections:
+        if label:
+            body.append(f"<h3>{escape(label)}</h3>")
+        items = "".join(f"<li>{escape(action)}</li>" for action in actions)
+        body.append(f"<ul>{items}</ul>")
+    return rendered_intro + "".join(body)
 
 
 def _remediation_markdown(
     findings: list[dict[str, object]],
     intro: str | None,
     maintenance_recommendations: list[str] | None = None,
+    remediation_groups: Mapping[str, list[RemediationRule]] | None = None,
 ) -> str:
-    actions = _remediation_actions(findings, maintenance_recommendations)
-    if actions:
-        body = (
-            (intro or (
+    sections = _remediation_sections(
+        findings,
+        maintenance_recommendations,
+        remediation_groups or {},
+    )
+    if sections:
+        body_parts = [
+            intro
+            or (
                 "The following actions address the identified observations and "
                 "support continued security assurance:"
-            ))
-            + "\n\n"
-            + "\n".join(f"- {action}" for action in actions)
-        )
+            )
+        ]
+        for label, actions in sections:
+            if label:
+                body_parts.extend((f"### {label}", ""))
+            body_parts.extend(f"- {action}" for action in actions)
+            body_parts.append("")
+        body = "\n".join(body_parts).strip()
     else:
         body = "No corrective actions were identified for the assessed controls."
     return _markdown_section("Remediation", body)

@@ -2,12 +2,35 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
+from audit_companion import cli
 from audit_companion.engine import build_results
 from audit_companion.models import QuestionResponse
 from audit_companion.sureformat import (
     SureFormatExportError,
     export_sureformat_xml,
 )
+
+
+@pytest.mark.parametrize(
+    ("platform", "expected_hostname"),
+    [("Android", "android"), ("iOS", "ios")],
+)
+def test_sureformat_hostname_defaults_for_mobile_platforms(
+    monkeypatch,
+    platform,
+    expected_hostname,
+) -> None:
+    prompts = []
+    monkeypatch.setattr(
+        cli.console,
+        "input",
+        lambda prompt: prompts.append(prompt) or "",
+    )
+
+    assert cli._prompt_hostname({"platforms": platform}) == expected_hostname
+    assert prompts == [
+        f"SureCloud hostname for platforms={platform} [{expected_hostname}]: "
+    ]
 
 
 def test_sureformat_export_groups_findings_and_reports_unmapped(minimal_pack, tmp_path) -> None:

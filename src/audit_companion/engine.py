@@ -11,7 +11,7 @@ from audit_companion.models import (
     Question,
     QuestionResponse,
 )
-from audit_companion.ui import emit, emit_panel, prompt
+from audit_companion.ui import emit, emit_detail, emit_panel, prompt
 
 
 def _show_guidance(
@@ -22,7 +22,7 @@ def _show_guidance(
 ) -> None:
     common = guidance.get("common")
     if common:
-        emit_panel("Evidence", common.strip(), "blue", output_fn)
+        emit_detail("Evidence", common.strip(), "blue", output_fn)
 
     selected_values = []
     for field_id, value in context.items():
@@ -38,7 +38,7 @@ def _show_guidance(
         and any(key.casefold() in value for value in normalized_values)
     ]
     if specific:
-        emit_panel("Location", "\n\n".join(specific), "yellow", output_fn)
+        emit_detail("Where to check", "\n".join(specific), "yellow", output_fn)
 
 
 class Applicable(Protocol):
@@ -230,29 +230,63 @@ def conduct_review(
     if not question_instances:
         raise AssessmentError("No assessment questions apply to the selected context.")
     responses = []
+    scope_totals: dict[str, int] = {}
+    if scope_field_order:
+        for _, scope in question_instances:
+            scope_value = scope.get(scope_field_order)
+            if scope_value is not None:
+                scope_totals[scope_value] = scope_totals.get(scope_value, 0) + 1
+    scope_counters: dict[str, int] = {}
 
-    for current, (question, scope) in enumerate(question_instances, start=1):
-        emit(f"[{current}/{len(question_instances)}]", output_fn, "bold cyan")
+    for overall_current, (question, scope) in enumerate(question_instances, start=1):
+        scope_value = scope.get(scope_field_order) if scope_field_order else None
+        if scope_value is None:
+            counter = f"[{overall_current}/{len(question_instances)}]"
+        else:
+            current = scope_counters.get(scope_value, 0) + 1
+            scope_counters[scope_value] = current
+            counter = (
+                f"[{current}/{scope_totals[scope_value]}] {scope_value}  |  "
+                f"Overall {overall_current}/{len(question_instances)}"
+            )
+        emit(counter, output_fn, "bold cyan")
         emit("", output_fn)
         emit(question.question, output_fn, "bold")
         emit("", output_fn)
-        if scope:
+        group = question.commentary_group or question.theme
+        if group:
+            emit(f"Domain: {group}", output_fn, "dim")
+        additional_scope = {
+            field_id: value
+            for field_id, value in scope.items()
+            if field_id != scope_field_order
+        }
+        if additional_scope:
             emit(
                 "Scope: "
-                + ", ".join(f"{field_id}={value}" for field_id, value in scope.items()),
+                + ", ".join(
+                    f"{field_id}={value}"
+                    for field_id, value in additional_scope.items()
+                ),
                 output_fn,
                 "yellow",
             )
         if question.evidence:
-            emit_panel("Evidence", question.evidence, "blue", output_fn)
+            emit_detail("Evidence", question.evidence, "blue", output_fn)
         if question.location:
-            emit_panel("Location", question.location, "yellow", output_fn)
+            emit_detail(
+                "Where to check",
+                question.location,
+                "yellow",
+                output_fn,
+            )
         _show_guidance(question.guidance, context, scope, output_fn)
-        emit_panel("Expected Value", question.expected_value, "green", output_fn)
-        emit("1. Compliant", output_fn)
-        emit("2. Non-Compliant", output_fn)
-        emit("3. Not Applicable", output_fn)
-        emit("4. Unknown", output_fn)
+        emit_detail("Expected", question.expected_value, "green", output_fn)
+        emit(
+            "1. Compliant       2. Non-compliant\n"
+            "3. Not applicable  4. Unknown",
+            output_fn,
+        )
         emit("", output_fn)
 
         answers = {
@@ -262,12 +296,12 @@ def conduct_review(
             "4": "unknown",
         }
         while True:
-            choice = prompt("> ", input_fn).strip()
+            choice = prompt("Answer [1-4]: ", input_fn).strip()
             if choice in answers:
                 break
             emit("Select 1, 2, 3, or 4.", output_fn, "red")
 
-        notes = prompt("Notes (optional): ", input_fn).strip() or None
+        notes = prompt("Notes (optional, Enter to skip): ", input_fn).strip() or None
         responses.append(
             QuestionResponse(
                 question_id=question.id,

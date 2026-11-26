@@ -152,6 +152,11 @@ def test_interview_collects_setup_before_conditioned_context_and_questions() -> 
     assert all(output[index + 1] == "" for index in context_headers)
     assert output[output.index("  2. Android") + 1] == ""
     assert output[output.index("Is the shared control enabled?") + 1] == ""
+    assert "Expected: Enabled" in output
+    assert (
+        "1. Compliant       2. Non-compliant\n3. Not applicable  4. Unknown"
+        in output
+    )
     first_question_index = output.index("Is the shared control enabled?")
     assert output[first_question_index - 2 : first_question_index] == [
         "[1/2]",
@@ -185,8 +190,13 @@ def test_interview_batches_repeated_questions_by_configured_scope() -> None:
             "",
         ]
     )
+    output: list[str] = []
 
-    results = run_interview(pack, lambda _prompt: next(answers))
+    results = run_interview(
+        pack,
+        lambda _prompt: next(answers),
+        output_fn=output.append,
+    )
 
     assert [
         (response.question_id, response.scope["platforms"])
@@ -195,6 +205,41 @@ def test_interview_batches_repeated_questions_by_configured_scope() -> None:
         ("shared", "iOS"),
         ("ios-only", "iOS"),
         ("shared", "Android"),
+    ]
+    assert [
+        line
+        for line in output
+        if line.startswith("[") and len(line) > 1 and line[1].isdigit()
+    ] == [
+        "[1/2] iOS  |  Overall 1/3",
+        "[2/2] iOS  |  Overall 2/3",
+        "[1/1] Android  |  Overall 3/3",
+    ]
+    assert (
+        "1. Compliant       2. Non-compliant\n3. Not applicable  4. Unknown"
+        in output
+    )
+
+
+def test_review_uses_clear_answer_and_optional_notes_prompts() -> None:
+    pack = make_pack()
+    prompts = []
+    answers = iter(["1", ""])
+
+    def input_fn(message: str) -> str:
+        prompts.append(message)
+        return next(answers)
+
+    conduct_review(
+        [pack.questions[0]],
+        {},
+        input_fn,
+        lambda _message: None,
+    )
+
+    assert prompts == [
+        "Answer [1-4]: ",
+        "Notes (optional, Enter to skip): ",
     ]
 
 

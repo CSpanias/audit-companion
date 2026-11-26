@@ -40,6 +40,21 @@ def emit_panel(
     )
 
 
+def emit_detail(
+    label: str,
+    message: str,
+    style: str,
+    output_fn: Callable[[str], None] | None = None,
+) -> None:
+    if output_fn is not None:
+        output_fn(f"{label}: {message}")
+        return
+    text = Text()
+    text.append(f"{label}: ", style=f"bold {style}")
+    text.append(message)
+    console.print(text)
+
+
 def prompt(
     message: str,
     input_fn: Callable[[str], str] | None = None,

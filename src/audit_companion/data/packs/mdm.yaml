@@ -2,15 +2,14 @@ id: mdm
 title: Mobile Device Management Security Assessment
 version: '1.0'
 executive_summary: >-
-  A Mobile Device Management (MDM) review was conducted for {client_name}, covering {platforms} devices managed
-  through {mdm_vendor}, to assess the effectiveness of controls protecting corporate information and access
-  to business resources. The assessment evaluated device compliance, authentication, application governance,
-  data protection, and platform-specific security controls.
-executive_summary_findings_intro: >-
-  The assessment identified opportunities to strengthen the security of managed mobile devices across {areas}.
+  A Mobile Device Management (MDM) security review was conducted for {client_name}, covering {platforms}
+  devices managed through {mdm_vendor}, to assess the effectiveness of controls protecting corporate information
+  and access to business resources. The assessment reviewed device authentication, application management,
+  platform hardening, data protection, compliance enforcement, and lifecycle management controls.
 executive_summary_conclusion: >-
-  Addressing the identified gaps would strengthen the organisation's mobile security posture and improve
-  assurance that managed devices remain secure and aligned with organisational requirements.
+  Overall, the assessment identified opportunities to improve controls across {areas}. Priority should be
+  given to {priorities}. Addressing these areas would improve assurance that managed mobile devices remain
+  secure and aligned with organisational security requirements.
 executive_summary_positive_conclusion: >-
   Overall, the assessed configuration provides a sound foundation for securely managing mobile devices and
   protecting corporate information.
@@ -18,68 +17,141 @@ positive_summary_intro: >-
   Key strengths included {strengths}. These controls provide a solid security baseline and support the
   protection of corporate information on managed devices.
 commentary_intro: >-
-  A Mobile Device Management (MDM) review was conducted for {client_name}, covering {mdm_vendor} policies
-  for managed {platforms} devices. The assessment reviewed the effectiveness of controls used to secure
-  managed mobile devices and protect corporate information.
+  A Mobile Device Management (MDM) security review was conducted for {client_name}, covering {mdm_vendor}
+  policies applied to managed {platforms} devices. The assessment evaluated controls relating to device
+  authentication, application governance, platform hardening, data protection, compliance management, and
+  device lifecycle oversight to determine whether managed mobile devices were being protected in accordance
+  with security expectations.
+include_description_in_commentary: false
 commentary_findings_intro: >-
-  The review identified findings across {areas}. The following sections summarise the control observations
-  and positive practices by platform.
+  The review identified opportunities to strengthen the security posture of the managed mobile device estate.
+  The following sections group observations by security domain and identify affected platforms.
+commentary_conclusion: >-
+  Overall, the review identified priority areas including {priorities}. Addressing these areas would improve
+  assurance that managed mobile devices remain secure and aligned with organisational security requirements.
 configuration_intro: >-
   The assessed mobile device management environment is summarised below.
-remediation_intro: "The following remediation actions are recommended:"
-report_scope_field: platforms
+remediation_intro: >-
+  The following actions are recommended to strengthen the security posture of the managed mobile device estate:
 interview_scope_field: platforms
 report_groups:
   Authentication and Access Control:
     commentary_label: Authentication and Access Control
     executive_summary_label: authentication and access control
-    executive_summary_priority: strengthening device authentication requirements
-    executive_summary_intro: Opportunities for improvement were identified in authentication and access control.
-    executive_summary_conclusion: Weak or inconsistent device authentication requirements may increase the risk
-      of unauthorised access to managed devices and locally stored information.
-    commentary_intro: The review identified opportunities to strengthen authentication and access control settings.
-    commentary_conclusion: Strong device authentication controls help protect locally stored information and reduce
-      the risk of unauthorised device access.
+    executive_summary_priority: enforcing stronger device authentication controls
+    executive_summary_intro: A significant theme related to authentication and device access controls.
+    executive_summary_conclusion: ""
+    commentary_intro: Authentication controls were reviewed to assess the effectiveness of device access protections.
+    commentary_conclusion: These weaknesses collectively reduce assurance that managed devices are adequately
+      protected against unauthorised physical access and credential-based attacks.
   Application Governance:
     commentary_label: Application Governance
     executive_summary_label: application governance
-    executive_summary_priority: strengthening application governance
-    executive_summary_intro: The assessment also considered application governance.
-    executive_summary_conclusion: Appropriate application controls help reduce the risk of unapproved software
-      accessing or disclosing corporate information.
-    commentary_intro: Application access and management controls were reviewed.
-    commentary_conclusion: Maintaining oversight of approved applications supports consistent protection of
-      corporate information across managed devices.
-  Data Protection:
-    commentary_label: Data Protection
-    executive_summary_label: data protection
-    executive_summary_priority: strengthening controls protecting corporate information
-    executive_summary_intro: Opportunities for improvement were identified in data protection.
-    executive_summary_conclusion: These controls help limit unauthorised disclosure or transfer of corporate
-      information from managed devices.
-    commentary_intro: The review considered controls intended to protect corporate information on managed devices.
-    commentary_conclusion: Effective data protection controls reduce exposure if devices or information are lost,
-      accessed, or shared inappropriately.
-  Device Lifecycle and Compliance:
-    commentary_label: Lifecycle and Compliance
-    executive_summary_label: device lifecycle and compliance
-    executive_summary_priority: maintaining supported and compliant devices
-    executive_summary_intro: Device lifecycle and compliance were also reviewed.
-    executive_summary_conclusion: Regular lifecycle oversight helps ensure devices remain supported, visible, and
-      aligned with organisational security requirements.
-    commentary_intro: Findings related to device lifecycle management and compliance oversight.
-    commentary_conclusion: Timely review of device status and lifecycle settings helps maintain assurance over the
-      managed mobile estate.
+    executive_summary_priority: improving application governance
+    executive_summary_intro: The assessment further identified opportunities to strengthen application governance.
+    executive_summary_conclusion: ""
+    commentary_intro: Application management controls were reviewed to determine whether software installed on
+      managed devices was subject to appropriate organisational oversight.
+    commentary_conclusion: Maintaining appropriate governance over installed applications helps keep devices
+      aligned with security, compliance, and operational requirements.
   Device Security and Hardening:
     commentary_label: Device Security and Hardening
     executive_summary_label: device security and hardening
-    executive_summary_priority: strengthening mobile device hardening
-    executive_summary_intro: The review identified opportunities to strengthen device security and hardening.
-    executive_summary_conclusion: Hardening measures reduce exposure to unauthorised device interaction and help
-      preserve platform security protections.
-    commentary_intro: Device security and platform hardening controls were assessed.
-    commentary_conclusion: Applying appropriate hardening settings helps reduce risks associated with physical
-      access and weakened device protections.
+    executive_summary_priority: improving device hardening
+    executive_summary_intro: The assessment also identified opportunities to strengthen device hardening.
+    executive_summary_conclusion: ""
+    commentary_intro: Device hardening controls were assessed to determine whether managed devices were protected
+      against physical access, tampering, and platform compromise.
+    commentary_conclusion: These conditions may increase the likelihood of device compromise, unauthorised
+      software installation, physical attack, or exposure of sensitive information.
+  Data Protection:
+    commentary_label: Data Protection
+    executive_summary_label: data protection
+    executive_summary_priority: strengthening protection of corporate data
+    executive_summary_intro: Several observations related to data protection controls.
+    executive_summary_conclusion: ""
+    commentary_intro: Data protection controls were reviewed to determine whether corporate information remained
+      protected when stored, viewed, or transferred on managed devices.
+    commentary_conclusion: These weaknesses increase the likelihood of data leakage, unauthorised disclosure, and
+      loss of organisational control over sensitive information.
+  Device Lifecycle and Compliance:
+    commentary_label: Device Lifecycle and Compliance
+    executive_summary_label: device lifecycle and compliance
+    executive_summary_priority: improving device lifecycle and compliance oversight
+    executive_summary_intro: The review also identified opportunities to improve device lifecycle management
+      and compliance oversight.
+    executive_summary_conclusion: ""
+    commentary_intro: Lifecycle and compliance controls were assessed to determine whether devices remained
+      secure and subject to effective administrative oversight throughout their operational lifetime.
+    commentary_conclusion: These weaknesses may reduce assurance that managed devices remain compliant,
+      supported, and under appropriate administrative control.
+remediation_groups:
+  Authentication and Access Control:
+  - remediation_ids:
+    - password_required
+    - biometrics
+    action: Require device authentication through a passcode, PIN, password, or approved biometric authentication method.
+  - remediation_ids:
+    - simple_passwords
+    - alphanumeric_passwords
+    - minimum_password_length
+    - password_history
+    action: Enforce strong authentication requirements, including minimum password length, prevention of simple or numeric-only passwords, and password history controls.
+  - remediation_ids:
+    - screen_lock_timeout
+    - screen_lock_reauthentication
+    action: Require devices to automatically lock after a defined period of inactivity and enforce re-authentication following lock events.
+  - remediation_ids:
+    - failed_authentication_wipe
+    action: Configure devices to automatically erase local data after a defined number of failed authentication attempts where operationally appropriate.
+  Application Governance:
+  - remediation_ids:
+    - app_store_access
+    action: Restrict application installation to approved applications and managed application stores where possible.
+  - remediation_ids:
+    - app_store_access
+    action: Establish an application governance process to review, approve, and manage software installed on managed devices.
+  Device Security and Hardening:
+  - remediation_ids:
+    - host_pairing
+    action: Prevent trust relationships with unauthorised computers by restricting host pairing on managed devices.
+  - remediation_ids:
+    - usb_restricted_mode
+    action: Enable USB Restricted Mode on iOS devices to prevent communication with USB accessories whilst devices remain locked.
+  - remediation_ids:
+    - jailbreak_root_detection
+    action: Prohibit rooted and jailbroken devices from accessing corporate resources through compliance policies.
+  - remediation_ids:
+    - developer_mode
+    action: Disable Android Developer Mode on managed devices unless there is a documented business requirement.
+  Data Protection:
+  - remediation_ids:
+    - screen_capture
+    action: Restrict screenshots and screen recordings where appropriate to reduce the risk of sensitive information being copied or disclosed.
+  - remediation_ids:
+    - managed_data_sharing
+    action: Implement Managed Open-In and data-sharing restrictions to prevent corporate information from being transferred to unmanaged applications.
+  - remediation_ids:
+    - external_storage
+    action: Restrict or disable removable and external storage where operationally feasible. Where external storage is required, apply protections such as encryption and access controls.
+  - remediation_ids:
+    - device_encryption
+    action: Require device encryption for all managed devices and block access from non-compliant devices.
+  Device Lifecycle and Compliance:
+  - remediation_ids:
+    - supported_os_version
+    action: Require supported operating system versions that continue to receive vendor security updates.
+  - remediation_ids:
+    - inactive_devices
+    action: Implement inactive device clean-up rules to identify, retire, remove, or otherwise manage devices that have not checked in within an approved timeframe.
+  - remediation_ids:
+    - remote_wipe
+    action: Ensure remote wipe functionality is available and supported by documented operational procedures for lost, stolen, compromised, or retired devices.
+  - remediation_ids:
+    - supported_os_version
+    - inactive_devices
+    - remote_wipe
+    action: Periodically review device compliance and lifecycle policies to ensure appropriate visibility and control of the managed device estate.
 context:
 - id: client_name
   label: What is the client or tenant name?
@@ -180,6 +252,7 @@ questions:
   section: configuration
   commentary_group: Data Protection
   remediation_id: external_storage
+  commentary_paragraph: 2
   commentary: Managed Android devices were permitted to use removable or externally attached storage without
     sufficient security controls. Information copied to external storage may not be subject to the same
     protections applied to data stored within managed applications or on the device itself. This may increase
@@ -207,6 +280,7 @@ questions:
   section: configuration
   commentary_group: Device Security and Hardening
   remediation_id: developer_mode
+  commentary_paragraph: 2
   commentary: Developer mode was enabled or permitted on managed Android devices. While intended for development
     and testing activities, developer mode exposes additional functionality and configuration options
     which are generally unnecessary for production devices. Its use may weaken device security controls
@@ -235,6 +309,7 @@ questions:
   section: configuration
   commentary_group: Authentication and Access Control
   remediation_id: password_required
+  commentary_paragraph: 1
   commentary: Device authentication was not enforced across managed devices. Without a passcode requirement,
     devices may be accessible to unauthorised individuals if lost, stolen, or left unattended. The absence
     of a mandatory unlock mechanism reduces the effectiveness of controls intended to protect corporate
@@ -261,6 +336,7 @@ questions:
   section: configuration
   commentary_group: Authentication and Access Control
   remediation_id: simple_passwords
+  commentary_paragraph: 1
   commentary: Managed devices were permitted to use passwords that are considered simple or predictable.
     Such passwords are generally easier to guess through manual or automated attacks and may reduce the
     effectiveness of controls intended to protect corporate information from unauthorised access.
@@ -285,6 +361,7 @@ questions:
   section: configuration
   commentary_group: Authentication and Access Control
   remediation_id: alphanumeric_passwords
+  commentary_paragraph: 1
   commentary: Managed devices were permitted to use simple numeric-only passwords for device authentication.
     Such passwords generally provide a lower level of resistance to guessing and brute-force attacks than
     more complex authentication methods. This may increase the likelihood of unauthorised access in the
@@ -313,6 +390,7 @@ questions:
   section: configuration
   commentary_group: Authentication and Access Control
   remediation_id: minimum_password_length
+  commentary_paragraph: 1
   commentary: The configured minimum password length did not align with recommended enterprise security
     practices. Shorter passwords typically provide reduced resistance to guessing, password cracking,
     and brute-force attacks. As a result, the effectiveness of authentication controls designed to protect
@@ -341,6 +419,7 @@ questions:
   section: configuration
   commentary_group: Authentication and Access Control
   remediation_id: password_history
+  commentary_paragraph: 1
   commentary: Managed devices were permitted to reuse previously configured passwords. Password history
     controls help prevent users from cycling between a small number of familiar passwords and encourage
     the selection of new credentials when password changes are required. The absence of such controls
@@ -368,6 +447,8 @@ questions:
   theme: Access Control
   section: configuration
   commentary_group: Authentication and Access Control
+  remediation_id: failed_authentication_wipe
+  commentary_paragraph: 2
   commentary: Devices were not configured to erase data following a suitable number of failed authentication
     attempts. This increases the opportunity for repeated password or PIN guessing attempts against lost
     or stolen devices and may reduce the effectiveness of controls intended to protect sensitive information
@@ -396,6 +477,7 @@ questions:
   section: configuration
   commentary_group: Authentication and Access Control
   remediation_id: screen_lock_reauthentication
+  commentary_paragraph: 3
   commentary: Devices were configured to permit continued access without requiring immediate or near-immediate
     re-authentication following a screen lock event. This may increase the likelihood of unauthorised
     access if a device is left unattended or temporarily accessible to another individual.
@@ -421,6 +503,7 @@ questions:
   section: configuration
   commentary_group: Authentication and Access Control
   remediation_id: screen_lock_timeout
+  commentary_paragraph: 3
   commentary: Devices remained unlocked for prolonged periods when left unattended. Extended inactivity
     timeouts increase the opportunity for unauthorised individuals to access corporate information on
     unattended devices and may reduce the effectiveness of device authentication controls.
@@ -446,6 +529,7 @@ questions:
   section: configuration
   commentary_group: Authentication and Access Control
   remediation_id: biometrics
+  commentary_paragraph: 1
   commentary: Biometric authentication methods were disabled or restricted on managed devices. Modern
     biometric controls can assist organisations in providing strong authentication while maintaining usability
     for end users. Restricting their use may encourage continued reliance on shorter or less complex authentication
@@ -475,6 +559,7 @@ questions:
   section: configuration
   commentary_group: Application Governance
   remediation_id: app_store_access
+  commentary_paragraph: 1
   commentary: Access to public application marketplaces was not restricted by the MDM platform. As a result,
     users may be able to install applications which have not been reviewed or approved by the organisation.
     Unrestricted application installation may increase exposure to vulnerable applications, unnecessary
@@ -507,6 +592,7 @@ questions:
   section: configuration
   commentary_group: Device Security and Hardening
   remediation_id: host_pairing
+  commentary_paragraph: 1
   commentary: Managed iOS devices were permitted to establish trust relationships with new host computers.
     Once a trusted host relationship is created, users or third parties may be able to interact with device
     data through the paired system. Restricting host pairing helps reduce the likelihood of unauthorised
@@ -536,6 +622,7 @@ questions:
   section: configuration
   commentary_group: Data Protection
   remediation_id: screen_capture
+  commentary_paragraph: 1
   commentary: Users were permitted to capture screenshots and screen recordings of information displayed
     within managed applications. Such functionality may allow sensitive corporate information to be retained,
     shared, or transferred outside approved management controls, increasing the risk of unauthorised disclosure.
@@ -563,6 +650,7 @@ questions:
   section: configuration
   commentary_group: Device Security and Hardening
   remediation_id: usb_restricted_mode
+  commentary_paragraph: 1
   commentary: USB accessories were permitted to communicate with managed devices while the device remained
     locked. This functionality may increase exposure to physical attacks, forensic extraction attempts,
     or exploitation through connected accessories. Restricting USB accessory access while devices are
@@ -590,6 +678,7 @@ questions:
   section: compliance
   commentary_group: Device Security and Hardening
   remediation_id: jailbreak_root_detection
+  commentary_paragraph: 2
   commentary: Devices that had been jailbroken or rooted were permitted within the managed device estate.
     Such modifications intentionally bypass manufacturer security controls and may weaken the protections
     relied upon by mobile operating systems and management platforms. The use of jailbroken or rooted
@@ -621,6 +710,7 @@ questions:
   section: compliance
   commentary_group: Device Lifecycle and Compliance
   remediation_id: supported_os_version
+  commentary_paragraph: 1
   commentary: Managed devices were permitted to operate using operating system versions that no longer
     receive security updates from the device vendor. Once an operating system reaches end of support,
     newly identified vulnerabilities are unlikely to be remediated, increasing the risk that managed devices
@@ -654,6 +744,7 @@ questions:
   section: compliance
   commentary_group: Authentication and Access Control
   remediation_id: password_required
+  commentary_paragraph: 1
   commentary: Device authentication was not enforced across managed devices. Without a passcode requirement,
     devices may be accessible to unauthorised individuals if lost, stolen, or left unattended. The absence
     of a mandatory unlock mechanism reduces the effectiveness of controls intended to protect corporate
@@ -681,6 +772,7 @@ questions:
   section: compliance
   commentary_group: Authentication and Access Control
   remediation_id: simple_passwords
+  commentary_paragraph: 1
   commentary: Managed devices were permitted to use passwords that are considered simple or predictable.
     Such passwords are generally easier to guess through manual or automated attacks and may reduce the
     effectiveness of controls intended to protect corporate information from unauthorised access.
@@ -705,6 +797,7 @@ questions:
   section: compliance
   commentary_group: Authentication and Access Control
   remediation_id: alphanumeric_passwords
+  commentary_paragraph: 1
   commentary: Managed devices were permitted to use simple numeric-only passwords for device authentication.
     Such passwords generally provide a lower level of resistance to guessing and brute-force attacks than
     more complex authentication methods. This may increase the likelihood of unauthorised access in the
@@ -733,6 +826,7 @@ questions:
   section: compliance
   commentary_group: Authentication and Access Control
   remediation_id: minimum_password_length
+  commentary_paragraph: 1
   commentary: The configured minimum password length did not align with recommended enterprise security
     practices. Shorter passwords typically provide reduced resistance to guessing, password cracking,
     and brute-force attacks. As a result, the effectiveness of authentication controls designed to protect
@@ -762,6 +856,7 @@ questions:
   section: compliance
   commentary_group: Authentication and Access Control
   remediation_id: screen_lock_timeout
+  commentary_paragraph: 3
   commentary: Devices remained unlocked for prolonged periods when left unattended. Extended inactivity
     timeouts increase the opportunity for unauthorised individuals to access corporate information on
     unattended devices and may reduce the effectiveness of device authentication controls.
@@ -786,6 +881,7 @@ questions:
   section: compliance
   commentary_group: Authentication and Access Control
   remediation_id: screen_lock_reauthentication
+  commentary_paragraph: 3
   commentary: Devices were configured to permit continued access without requiring immediate or near-immediate
     re-authentication following a screen lock event. This may increase the likelihood of unauthorised
     access if a device is left unattended or temporarily accessible to another individual.
@@ -812,6 +908,7 @@ questions:
   section: compliance
   commentary_group: Authentication and Access Control
   remediation_id: screen_lock_timeout
+  commentary_paragraph: 3
   commentary: Devices remained unlocked for prolonged periods when left unattended. Extended inactivity
     timeouts increase the opportunity for unauthorised individuals to access corporate information on
     unattended devices and may reduce the effectiveness of device authentication controls.
@@ -836,6 +933,7 @@ questions:
   section: compliance
   commentary_group: Authentication and Access Control
   remediation_id: password_history
+  commentary_paragraph: 1
   commentary: Managed devices were permitted to reuse previously configured passwords. Password history
     controls help prevent users from cycling between a small number of familiar passwords and encourage
     the selection of new credentials when password changes are required. The absence of such controls
@@ -863,6 +961,7 @@ questions:
   section: compliance
   commentary_group: Data Protection
   remediation_id: device_encryption
+  commentary_paragraph: 2
   commentary: Device encryption was not enforced for managed Android devices. Encryption provides an important
     safeguard by helping to protect data stored on a device from unauthorised access in the event of device
     loss, theft, or compromise. The absence of enforced encryption may increase the likelihood of sensitive
@@ -893,6 +992,7 @@ questions:
   section: app_protection
   commentary_group: Data Protection
   remediation_id: managed_data_sharing
+  commentary_paragraph: 1
   commentary: Controls designed to restrict the transfer of corporate information between managed and
     unmanaged applications were not configured. Consequently, users may be able to move information outside
     approved management boundaries and into personal applications or services. This increases the likelihood
@@ -924,6 +1024,7 @@ questions:
   section: cleanup_rules
   commentary_group: Device Lifecycle and Compliance
   remediation_id: inactive_devices
+  commentary_paragraph: 1
   commentary: 'Devices that no longer communicate with the MDM platform may remain visible  as managed
     devices despite no longer receiving policy updates, compliance  evaluation, or administrative oversight.
     Over time this may reduce  visibility of the active device estate and complicate asset management,  monitoring,
@@ -956,6 +1057,7 @@ questions:
   section: device_actions
   commentary_group: Device Lifecycle and Compliance
   remediation_id: remote_wipe
+  commentary_paragraph: 1
   commentary: Remote wipe functionality was not available or had not been configured for managed devices.
     This capability is commonly relied upon to remove corporate information from devices that are lost,
     stolen, compromised, or retired. Without remote wipe functionality, the organisation may have limited

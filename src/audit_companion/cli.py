@@ -121,10 +121,18 @@ def _prompt_hostname(scope: dict[str, str]) -> str:
         if scope
         else ""
     )
+    platform = scope.get("platforms", "").casefold()
+    default_hostname = platform if platform in {"android", "ios"} else None
+    prompt_label = f"SureCloud hostname{scope_description}"
+    if default_hostname:
+        prompt_label += f" [{default_hostname}]"
+
     while True:
-        hostname = console.input(f"SureCloud hostname{scope_description}: ").strip()
+        hostname = console.input(f"{prompt_label}: ").strip()
         if hostname:
             return hostname
+        if default_hostname:
+            return default_hostname
         console.print(Text("Hostname is required.", style="red"))
 
 

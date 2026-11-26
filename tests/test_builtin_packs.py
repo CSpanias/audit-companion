@@ -80,6 +80,8 @@ def test_mdm_controls_are_filtered_and_scoped_by_selected_platform() -> None:
     )
     scope_sequence = [scope["platforms"] for _, scope in instances]
     first_android = scope_sequence.index("Android")
+    assert first_android == 25
+    assert len(scope_sequence) - first_android == 18
     assert all(scope == "iOS" for scope in scope_sequence[:first_android])
     assert all(scope == "Android" for scope in scope_sequence[first_android:])
     scopes_by_id: dict[str, list[dict[str, str]]] = {}
