@@ -79,6 +79,7 @@ def applicable_items(
 def expand_question_scopes(
     questions: Iterable[Question],
     context: Mapping[str, object],
+    scope_field_order: str | None = None,
 ) -> list[tuple[Question, dict[str, str]]]:
     instances = []
     for question in questions:
@@ -95,6 +96,20 @@ def expand_question_scopes(
             scope = dict(combination)
             if applies(question.applies_when, {**context, **scope}):
                 instances.append((question, scope))
+    if scope_field_order:
+        selected = context.get(scope_field_order)
+        selected_values = selected if isinstance(selected, list) else [selected]
+        scope_order = {
+            str(value): index
+            for index, value in enumerate(selected_values)
+            if value is not None
+        }
+        instances.sort(
+            key=lambda item: scope_order.get(
+                item[1].get(scope_field_order, ""),
+                len(scope_order),
+            )
+        )
     return instances
 
 
@@ -205,8 +220,13 @@ def conduct_review(
     context: Mapping[str, object],
     input_fn: Callable[[str], str] | None = None,
     output_fn: Callable[[str], None] | None = None,
+    scope_field_order: str | None = None,
 ) -> list[QuestionResponse]:
-    question_instances = expand_question_scopes(questions, context)
+    question_instances = expand_question_scopes(
+        questions,
+        context,
+        scope_field_order,
+    )
     if not question_instances:
         raise AssessmentError("No assessment questions apply to the selected context.")
     responses = []
@@ -329,5 +349,11 @@ def run_interview(
         input_fn,
         output_fn,
     )
-    responses = conduct_review(pack.questions, context, input_fn, output_fn)
+    responses = conduct_review(
+        pack.questions,
+        context,
+        input_fn,
+        output_fn,
+        pack.interview_scope_field,
+    )
     return build_results(pack, context, context_notes, responses)

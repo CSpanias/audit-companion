@@ -97,6 +97,7 @@ class AssessmentPack(BaseModel):
     remediation_intro: str | None = None
     maintenance_recommendations: list[str] = Field(default_factory=list)
     report_scope_field: str | None = None
+    interview_scope_field: str | None = None
     report_groups: dict[str, ReportGroup] = Field(default_factory=dict)
     context: list[ContextField] = Field(default_factory=list)
     questions: list[Question] = Field(min_length=1)
@@ -204,6 +205,19 @@ class AssessmentPack(BaseModel):
             context_ids.index(self.report_scope_field)
         ].type not in ("choice", "multi_choice"):
             raise ValueError("The report scope field must be a choice context field")
+        if (
+            self.interview_scope_field
+            and self.interview_scope_field not in known_context_ids
+        ):
+            raise ValueError(
+                "The interview scope field must refer to a context field"
+            )
+        if self.interview_scope_field and self.context[
+            context_ids.index(self.interview_scope_field)
+        ].type not in ("choice", "multi_choice"):
+            raise ValueError(
+                "The interview scope field must be a choice context field"
+            )
         return self
 
 

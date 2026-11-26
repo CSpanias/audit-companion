@@ -73,7 +73,15 @@ def test_mdm_controls_are_filtered_and_scoped_by_selected_platform() -> None:
     pack = load_builtin_pack("mdm")
     context = {"platforms": ["iOS", "Android"]}
     questions = applicable_items(pack.questions, context)
-    instances = expand_question_scopes(questions, context)
+    instances = expand_question_scopes(
+        questions,
+        context,
+        pack.interview_scope_field,
+    )
+    scope_sequence = [scope["platforms"] for _, scope in instances]
+    first_android = scope_sequence.index("Android")
+    assert all(scope == "iOS" for scope in scope_sequence[:first_android])
+    assert all(scope == "Android" for scope in scope_sequence[first_android:])
     scopes_by_id: dict[str, list[dict[str, str]]] = {}
     for question, scope in instances:
         scopes_by_id.setdefault(question.id, []).append(scope)

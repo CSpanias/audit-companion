@@ -155,6 +155,39 @@ def test_interview_collects_setup_before_conditioned_context_and_questions() -> 
     assert output.count("") >= len(results.context) + len(results.responses)
 
 
+def test_interview_batches_repeated_questions_by_configured_scope() -> None:
+    data = make_pack().model_dump()
+    data["interview_scope_field"] = "platforms"
+    for question in data["questions"]:
+        question["repeat_for"] = ["platforms"]
+    pack = AssessmentPack.model_validate(data)
+    answers = iter(
+        [
+            "1,2",
+            "",
+            "Customer tenant",
+            "",
+            "1",
+            "",
+            "1",
+            "",
+            "1",
+            "",
+        ]
+    )
+
+    results = run_interview(pack, lambda _prompt: next(answers))
+
+    assert [
+        (response.question_id, response.scope["platforms"])
+        for response in results.responses
+    ] == [
+        ("shared", "iOS"),
+        ("ios-only", "iOS"),
+        ("shared", "Android"),
+    ]
+
+
 def test_guidance_uses_the_current_repeated_scope() -> None:
     pack = make_pack()
     question = pack.questions[0].model_copy(

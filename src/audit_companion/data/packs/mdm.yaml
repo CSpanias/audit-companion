@@ -27,6 +27,7 @@ configuration_intro: >-
   The assessed mobile device management environment is summarised below.
 remediation_intro: "The following remediation actions are recommended:"
 report_scope_field: platforms
+interview_scope_field: platforms
 report_groups:
   Authentication and Access Control:
     commentary_label: Authentication and Access Control
