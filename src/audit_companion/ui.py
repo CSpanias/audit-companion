@@ -2,9 +2,11 @@
 
 import re
 from collections.abc import Callable
+from io import StringIO
 
 from rich.console import Console
 from rich.panel import Panel
+from rich.progress import BarColumn, Progress, TextColumn
 from rich.text import Text
 
 console = Console()
@@ -55,9 +57,23 @@ def emit_progress(
     counter: str,
     output_fn: Callable[[str], None] | None = None,
 ) -> None:
-    filled = completed * 20 // total
-    bar = "#" * filled + "-" * (20 - filled)
-    emit(f"Progress: [{bar}] {counter}", output_fn, "cyan")
+    stream = StringIO() if output_fn is not None else None
+    progress_console = (
+        Console(file=stream, width=80, color_system=None)
+        if stream is not None
+        else console
+    )
+    progress = Progress(
+        TextColumn("Progress:", style="cyan"),
+        BarColumn(bar_width=20),
+        TextColumn("{task.fields[counter]}", style="cyan"),
+        console=progress_console,
+        auto_refresh=False,
+    )
+    progress.add_task("", total=total, completed=completed, counter=counter)
+    progress_console.print(progress.get_renderable())
+    if output_fn is not None and stream is not None:
+        output_fn(stream.getvalue().rstrip("\n"))
 
 
 def emit_panel(

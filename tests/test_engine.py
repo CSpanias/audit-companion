@@ -158,9 +158,13 @@ def test_interview_collects_setup_before_conditioned_context_and_questions() -> 
         in output
     )
     first_question_index = output.index("Is the shared control enabled?")
-    assert output[first_question_index - 1] == "Progress: [--------------------] 1/2"
+    assert output[first_question_index - 1] == ""
+    assert output[first_question_index - 2].startswith("Progress:")
+    assert output[first_question_index - 2].endswith("1/2")
     second_question_index = output.index("Is the iOS control enabled?")
-    assert output[second_question_index - 1] == "Progress: [##########----------] 2/2"
+    assert output[second_question_index - 1] == ""
+    assert output[second_question_index - 2].startswith("Progress:")
+    assert output[second_question_index - 2].endswith("2/2")
     assert output.count("") >= len(results.context) + len(results.responses)
 
 
@@ -200,12 +204,20 @@ def test_interview_batches_repeated_questions_by_configured_scope() -> None:
         ("ios-only", "iOS"),
         ("shared", "Android"),
     ]
-    assert [line for line in output if line.startswith("Progress:")] == [
-        "Progress: [--------------------] 1/2 iOS  |  Overall 1/3",
-        "Progress: [######--------------] 2/2 iOS  |  Overall 2/3",
-        "Progress: [#############-------] 1/1 Android  |  Overall 3/3",
-        "Progress: [####################] 3/3 completed",
+    progress_lines = [line for line in output if line.startswith("Progress:")]
+    expected_counters = [
+        "1/2 iOS",
+        "2/2 iOS",
+        "1/1 Android",
+        "1/1 Android completed",
     ]
+    assert len(progress_lines) == len(expected_counters)
+    assert all(
+        line.endswith(counter)
+        for line, counter in zip(progress_lines, expected_counters)
+    )
+    assert all("Overall" not in line for line in progress_lines)
+    assert not any(line.startswith("Domain:") for line in output)
     assert (
         "1. Compliant       2. Non-compliant\n3. Not applicable  4. Unknown"
         in output
@@ -261,7 +273,7 @@ def test_guidance_uses_the_current_repeated_scope() -> None:
     assert output[-1] == ""
 
 
-def test_review_separates_domain_guidance_and_expected_sections() -> None:
+def test_review_separates_question_guidance_and_expected_sections() -> None:
     question = make_pack().questions[0].model_copy(
         update={
             "theme": "Authentication",
@@ -281,13 +293,12 @@ def test_review_separates_domain_guidance_and_expected_sections() -> None:
         output_fn=output.append,
     )
 
-    index = output.index("Domain: Authentication")
-    assert output[index - 1 : index + 2] == [
-        "Progress: [--------------------] 1/1",
-        "Domain: Authentication",
-        "Is the shared control enabled?",
-    ]
-    assert output[index + 2] == ""
+    index = output.index("Is the shared control enabled?")
+    assert output[index - 2].startswith("Progress:")
+    assert output[index - 2].endswith("1/1")
+    assert output[index - 1] == ""
+    assert output[index + 1] == ""
+    assert not any(line.startswith("Domain:") for line in output)
     assert output[output.index("Evidence: Review the settings.") + 1] == ""
     assert output[output.index("Where to check: Devices > Settings") + 1] == ""
     assert output[output.index("Expected: Enabled") + 1] == ""

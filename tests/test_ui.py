@@ -1,10 +1,41 @@
 from io import StringIO
 
 from rich.console import Console
+from rich.text import Text
 
 import audit_companion.ui as ui
 from audit_companion.engine import collect_context, conduct_review
 from audit_companion.packs import load_builtin_pack
+
+
+def test_progress_uses_rich_bar_and_updates_with_completed_controls(monkeypatch) -> None:
+    stream = StringIO()
+    monkeypatch.setattr(
+        ui,
+        "console",
+        Console(
+            file=stream,
+            width=80,
+            color_system="standard",
+            force_terminal=True,
+            legacy_windows=False,
+        ),
+    )
+
+    ui.emit_progress(0, 2, "1/2 iOS")
+    ui.emit_progress(1, 2, "2/2 iOS")
+    ui.emit_progress(2, 2, "2/2 iOS completed")
+
+    lines = stream.getvalue().splitlines()
+    plain_lines = [Text.from_ansi(line).plain for line in lines]
+    assert [line.split()[-2:] for line in plain_lines[:2]] == [
+        ["1/2", "iOS"],
+        ["2/2", "iOS"],
+    ]
+    assert plain_lines[2].endswith("2/2 iOS completed")
+    assert all("━" in line for line in plain_lines)
+    assert lines[0].split("1/2")[0] != lines[1].split("2/2")[0]
+    assert lines[1].split("2/2")[0] != lines[2].split("2/2")[0]
 
 
 def test_guidance_panels_are_capped_for_wide_terminals(monkeypatch) -> None:

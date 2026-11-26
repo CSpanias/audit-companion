@@ -15,6 +15,7 @@ over a call, asks the questions, and records the evidence and responses.
    evidence guidance, and configuration locations. The assessor records
    compliant, non-compliant, not applicable, or unknown, with optional notes.
    The progress line shows the current control and a bar of completed controls.
+   For MDM, progress resets for each selected platform.
 4. **Results** — turn non-compliant responses into findings and compliant
    responses into positive observations. Unknown and not-applicable answers
    remain in the response history without becoming findings.
