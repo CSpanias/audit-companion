@@ -55,4 +55,4 @@ User -> IP phone / softphone -> PBX / VoIP platform -> SBC
 
 - [VoIP architecture and features](https://www.esds.co.in/blog/voip-understanding-architecture-and-features/)
 - [SBC TLS and SRTP configuration guide](https://telcobridges.com/learning/voip-security/sbc-tls-srtp-configuration-guide/)
-- [AudioCodes SBC assessment guidance](https://app.notion.com/p/AudioCodes-SBCs-40e5b866a8b480c48c42db081c49c26c?pvs=21)
+- [AudioCodes SBC assessment guide](audiocodes-sbc-guide.md)

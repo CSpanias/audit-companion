@@ -3,12 +3,9 @@
 An interactive tool for guided, live security assessments of MDM, remote
 access, and VoIP environments.
 
-Audit Companion builds on the shared workflow in the
-[MDM-Audit](https://github.com/CSpanias/mdm-audit),
-[Remote-Access-Audit](https://github.com/CSpanias/remote-access-audit), and
-[VoIP-Audit](https://github.com/CSpanias/voip-audit) proof of concepts. Each
-subcommand runs its built-in assessment with default questions, evidence
-guidance, and reporting.
+Audit Companion combines the shared workflows of three legacy assessment
+tools for MDM, remote access, and VoIP. Each subcommand runs its built-in
+assessment with default questions, evidence guidance, and reporting.
 
 ## Start an assessment
 

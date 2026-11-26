@@ -1,6 +1,11 @@
 id: mdm
 title: Mobile Device Management Security Assessment
 version: '1.0'
+sureformat_assessment:
+  id: SC-2142
+  description: >-
+    A review of the organisation's mobile device management configuration was
+    performed.
 executive_summary: >-
   A Mobile Device Management (MDM) security review was conducted for {client_name}, covering {platforms}
   devices managed through {mdm_vendor}, to assess the effectiveness of controls protecting corporate information

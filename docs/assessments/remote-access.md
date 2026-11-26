@@ -1,8 +1,8 @@
 # Remote access
 
-Remote-Access-Audit supports structured configuration and governance reviews
-of remote access solutions. It is not intended to perform penetration testing.
-The current standalone tool supports:
+Audit Companion's remote-access assessment supports structured configuration
+and governance reviews of remote access solutions. It is not intended to
+perform penetration testing. The current assessment packs cover:
 
 - Microsoft Always On VPN
 - BeyondTrust Privileged Remote Access (PRA)

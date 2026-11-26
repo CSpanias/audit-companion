@@ -1,6 +1,9 @@
 id: voip
 title: VoIP Security Assessment
 version: '1.0'
+sureformat_assessment:
+  id: SC-1830
+  description: A review of the organisation's VoIP configuration was performed.
 executive_summary: >-
   A VoIP security configuration review was performed for the {client_name} {voip_solution} platform and its
   {device_type} component to assess the effectiveness of controls protecting telephony services, management

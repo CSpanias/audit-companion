@@ -1,20 +1,19 @@
 # Mobile Device Management (MDM)
 
-MDM-Audit is an interactive assessment tool for Mobile Device Management
-security reviews. It guides assessors through a structured questionnaire,
-shows platform-specific review guidance, and generates report text and
-structured findings.
+Audit Companion's MDM assessment guides assessors through a structured
+Mobile Device Management security review, shows platform-specific guidance,
+and generates structured findings and a report.
 
-The existing assessment covers Microsoft Intune environments for:
+The assessment covers Microsoft Intune environments for:
 
 - iOS and iPadOS
 - Android
 
 ## Setup and context
 
-The standalone tool collects the client or tenant name, platforms in scope,
-MDM solution and service release, and platform-specific policy and device
-counts. It uses this information to select controls and populate outputs.
+Setup collects the client or tenant name, platforms in scope, MDM solution
+and service release, and platform-specific policy and device counts. This
+information is used to select controls and populate outputs.
 
 ## Guided review
 

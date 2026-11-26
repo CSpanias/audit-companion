@@ -1,6 +1,10 @@
 id: remote-access
 title: Remote Access Security Assessment
 version: '1.0'
+sureformat_assessment:
+  id: SC-9941
+  description: >-
+    A review of the organisation's remote access configuration was performed.
 executive_summary: >-
   A remote access security configuration review was conducted for {client_name}, covering the
   {remote_access_solution} deployment, to assess the effectiveness of controls protecting remote connectivity

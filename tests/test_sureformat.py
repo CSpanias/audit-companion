@@ -4,7 +4,12 @@ import pytest
 
 from audit_companion import cli
 from audit_companion.engine import build_results
-from audit_companion.models import QuestionResponse
+from audit_companion.models import (
+    AssessmentResults,
+    QuestionResponse,
+    SureFormatAssessment,
+)
+from audit_companion.packs import load_builtin_pack
 from audit_companion.sureformat import (
     SureFormatExportError,
     export_sureformat_xml,
@@ -35,6 +40,10 @@ def test_sureformat_hostname_defaults_for_mobile_platforms(
 
 def test_sureformat_export_groups_findings_and_reports_unmapped(minimal_pack, tmp_path) -> None:
     pack = minimal_pack
+    pack.sureformat_assessment = SureFormatAssessment(
+        id="SC-9941",
+        description="A remote access review was performed.",
+    )
     pack.questions[0].sureformat_id = "SC-100"
     results = build_results(
         pack,
@@ -68,7 +77,13 @@ def test_sureformat_export_groups_findings_and_reports_unmapped(minimal_pack, tm
     assert unmapped == ["access-review"]
     root = ET.parse(xml_paths[0]).getroot()
     assert root.find(".//item").attrib["hostname"] == "asset-platform a"
-    assert root.find(".//vulnerability").attrib["id"] == "SC-100"
+    assert [
+        item.attrib["id"] for item in root.findall(".//vulnerability")
+    ] == ["SC-9941", "SC-100"]
+    second_root = ET.parse(xml_paths[1]).getroot()
+    assert [
+        item.attrib["id"] for item in second_root.findall(".//vulnerability")
+    ] == ["SC-9941"]
 
 
 def test_sureformat_export_requires_pack_mappings(minimal_pack, tmp_path) -> None:
@@ -80,8 +95,51 @@ def test_sureformat_export_requires_pack_mappings(minimal_pack, tmp_path) -> Non
         [],
     )
 
-    with pytest.raises(SureFormatExportError, match="no SureFormat finding mappings"):
+    with pytest.raises(
+        SureFormatExportError,
+        match="no SureFormat assessment or finding mappings",
+    ):
         export_sureformat_xml(results, pack, tmp_path, lambda _scope: "asset")
+
+
+@pytest.mark.parametrize(
+    ("pack_id", "expected_id"),
+    [
+        ("mdm", "SC-2142"),
+        ("remote-access", "SC-9941"),
+        ("voip", "SC-1830"),
+    ],
+)
+def test_sureformat_export_always_includes_assessment_mapping(
+    pack_id: str,
+    expected_id: str,
+    tmp_path,
+) -> None:
+    pack = load_builtin_pack(pack_id)
+    results = AssessmentResults(
+        pack_id=pack.id,
+        pack_title=pack.title,
+        pack_version=pack.version,
+        context={},
+        context_notes={},
+        responses=[],
+        findings=[],
+        positive_observations=[],
+    )
+
+    xml_paths, unmapped = export_sureformat_xml(
+        results,
+        pack,
+        tmp_path,
+        lambda _scope: "assessment-asset",
+    )
+
+    assert unmapped == []
+    assert len(xml_paths) == 1
+    assert [
+        item.attrib["id"]
+        for item in ET.parse(xml_paths[0]).findall(".//vulnerability")
+    ] == [expected_id]
 
 
 def test_sureformat_export_can_map_a_finding_by_scope(minimal_pack, tmp_path) -> None:

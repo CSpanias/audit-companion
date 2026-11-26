@@ -21,12 +21,13 @@ def export_sureformat_xml(
     hostname_for_scope: Callable[[dict[str, str]], str],
 ) -> tuple[list[Path], list[str]]:
     questions_by_id = {question.id: question for question in pack.questions}
-    if not any(
+    has_question_mappings = any(
         question.sureformat_id or question.sureformat_id_by_scope
         for question in pack.questions
-    ):
+    )
+    if not pack.sureformat_assessment and not has_question_mappings:
         raise SureFormatExportError(
-            f"Assessment pack {pack.id} has no SureFormat finding mappings."
+            f"Assessment pack {pack.id} has no SureFormat assessment or finding mappings."
         )
 
     grouped_findings: dict[ScopeKey, list[tuple[dict[str, object], str]]] = {}
@@ -83,6 +84,16 @@ def export_sureformat_xml(
             protocol="tcp",
         )
         vulnerabilities = ET.SubElement(service, "vulnerabilities")
+
+        if pack.sureformat_assessment:
+            vulnerability = ET.SubElement(
+                vulnerabilities,
+                "vulnerability",
+                id=pack.sureformat_assessment.id,
+            )
+            ET.SubElement(vulnerability, "information").text = (
+                pack.sureformat_assessment.description
+            )
 
         for finding, vulnerability_id in findings:
             vulnerability = ET.SubElement(

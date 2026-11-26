@@ -2,12 +2,8 @@
 
 **An interactive tool for guided, live security assessments.**
 
-Audit Companion brings the shared workflow of three existing assessment tools
-into one interactive tool:
-
-- [MDM-Audit](https://github.com/CSpanias/mdm-audit)
-- [Remote-Access-Audit](https://github.com/CSpanias/remote-access-audit)
-- [VoIP-Audit](https://github.com/CSpanias/voip-audit)
+Audit Companion combines the shared assessment workflows of three legacy tools
+covering MDM, remote access, and VoIP.
 
 The tools are designed for an assessor-led review, including live walkthroughs
 with a customer over a call. The assessor gathers context, asks structured

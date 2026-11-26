@@ -51,4 +51,5 @@ nav:
       - VoIP: assessments/voip.md
   - Background:
       - VoIP fundamentals: background/voip-fundamentals.md
+      - AudioCodes SBC guide: background/audiocodes-sbc-guide.md
       - BeyondTrust PRA: background/beyondtrust-pra.md

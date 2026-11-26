@@ -80,6 +80,13 @@ class ReportGroup(BaseModel):
     commentary_conclusion: str = ""
 
 
+class SureFormatAssessment(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(min_length=1)
+    description: str = Field(min_length=1)
+
+
 class RemediationRule(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -93,6 +100,7 @@ class AssessmentPack(BaseModel):
     id: str = Field(pattern=r"^[a-z0-9][a-z0-9-]*$")
     title: str
     version: str
+    sureformat_assessment: SureFormatAssessment | None = None
     executive_summary: str | None = None
     executive_summary_findings_intro: str | None = None
     executive_summary_conclusion: str | None = None
