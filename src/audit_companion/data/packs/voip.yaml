@@ -2,9 +2,9 @@ id: voip
 title: VoIP Security Assessment
 version: '1.0'
 executive_summary: >-
-  **A VoIP security configuration review was performed for the {client_name} {voip_solution} platform and its
+  A VoIP security configuration review was performed for the {client_name} {voip_solution} platform and its
   {device_type} component to assess the effectiveness of controls protecting telephony services, management
-  interfaces, and communications.** The assessment evaluated controls relating to platform security,
+  interfaces, and communications. The assessment evaluated controls relating to platform security,
   authentication, administrative access, communications protection, monitoring, and operational resilience.
 executive_summary_findings_intro: >-
   The assessment identified opportunities to strengthen security across {areas}.
@@ -13,8 +13,8 @@ executive_summary_conclusion: >-
   operational resilience of the VoIP environment and provide greater assurance over business-critical telephony
   services.
 commentary_intro: |
-  A VoIP security configuration review was conducted for **{client_name}**, covering the **{voip_solution}**
-  platform and its **{device_type}** component. The assessment evaluated controls relating to platform security,
+  A VoIP security configuration review was conducted for {client_name}, covering the {voip_solution}
+  platform and its {device_type} component. The assessment evaluated controls relating to platform security,
   authentication, administrative access, communications protection, monitoring, and operational resilience.
 commentary_findings_intro: >-
   The review identified opportunities to strengthen the overall security posture of the VoIP environment across
@@ -29,7 +29,7 @@ report_groups:
   Platform Lifecycle Management:
     executive_summary_label: platform lifecycle management
     executive_summary_priority: upgrading the platform to a vendor-supported version
-    executive_summary_intro: A significant theme related to **platform lifecycle management**.
+    executive_summary_intro: A significant theme related to platform lifecycle management.
     executive_summary_conclusion: Unsupported software reduces assurance that newly discovered security issues
       will be remediated and may expose the platform to publicly known vulnerabilities.
     commentary_intro: The platform lifecycle review identified a supportability concern.
@@ -38,7 +38,7 @@ report_groups:
   Authentication and Identity Security:
     executive_summary_label: authentication and identity
     executive_summary_priority: strengthening administrator authentication and identity controls
-    executive_summary_intro: A significant theme related to **authentication and access management**.
+    executive_summary_intro: A significant theme related to authentication and access management.
     executive_summary_conclusion: Collectively, these weaknesses increase the likelihood of credential compromise,
       reduce accountability, and may expose critical telephony services to unauthorised access.
     commentary_intro: The review identified gaps in administrator authentication and identity management.
@@ -47,8 +47,8 @@ report_groups:
   Administrative Interface Security:
     executive_summary_label: administrative interface security
     executive_summary_priority: securing administrative interfaces and privileged roles
-    executive_summary_intro: The review also identified concerns relating to **administrative interface security
-      and platform hardening**.
+    executive_summary_intro: The review also identified concerns relating to administrative interface security
+      and platform hardening.
     executive_summary_conclusion: These gaps may increase exposure of administrative credentials and configuration
       interfaces to unauthorised access or interception by attackers with network access.
     commentary_intro: A number of management interface controls were either absent or insufficiently configured.
@@ -57,7 +57,7 @@ report_groups:
   Administrative Access Control:
     executive_summary_label: administrative access governance
     executive_summary_priority: restricting and periodically reviewing privileged access
-    executive_summary_intro: '**Administrative access governance** also requires attention.'
+    executive_summary_intro: Administrative access governance also requires attention.
     executive_summary_conclusion: These conditions may leave unnecessary privileged access in place and increase
       the potential impact of account compromise.
     commentary_intro: Management access restrictions and periodic access reviews could be strengthened.
@@ -66,7 +66,7 @@ report_groups:
   Cryptography and Communications Security:
     executive_summary_label: communications security
     executive_summary_priority: enforcing encryption for administrative and VoIP communications
-    executive_summary_intro: The review identified concerns relating to **cryptography and communications security**.
+    executive_summary_intro: The review identified concerns relating to cryptography and communications security.
     executive_summary_conclusion: Sensitive call information, authentication data, and voice communications may
       be susceptible to interception or manipulation where an attacker can access the underlying network.
     commentary_intro: The review identified weaknesses in cryptographic controls and communications protection.
@@ -75,7 +75,7 @@ report_groups:
   Threat Detection and Protection:
     executive_summary_label: threat detection and protection
     executive_summary_priority: improving threat detection and restricting unauthenticated calls
-    executive_summary_intro: The assessment identified concerns relating to **threat detection and protection**.
+    executive_summary_intro: The assessment identified concerns relating to threat detection and protection.
     executive_summary_conclusion: These weaknesses may increase exposure to fraudulent call activity and reduce
       the organisation's ability to detect or respond to attacks targeting telephony infrastructure.
     commentary_intro: Threat detection and prevention capabilities could be strengthened.
@@ -84,7 +84,7 @@ report_groups:
   Logging and Monitoring:
     executive_summary_label: security monitoring
     executive_summary_priority: improving audit logging and central monitoring
-    executive_summary_intro: Finally, **security monitoring** requires improvement.
+    executive_summary_intro: Finally, security monitoring requires improvement.
     executive_summary_conclusion: These conditions may hinder the detection of malicious activity, incident
       response, and forensic investigation.
     commentary_intro: Security monitoring controls did not provide comprehensive visibility of platform activity.

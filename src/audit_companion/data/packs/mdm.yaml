@@ -32,7 +32,7 @@ report_groups:
     commentary_label: Authentication and Access Control
     executive_summary_label: authentication and access control
     executive_summary_priority: strengthening device authentication requirements
-    executive_summary_intro: "Opportunities for improvement were identified in **authentication and access control**."
+    executive_summary_intro: Opportunities for improvement were identified in authentication and access control.
     executive_summary_conclusion: Weak or inconsistent device authentication requirements may increase the risk
       of unauthorised access to managed devices and locally stored information.
     commentary_intro: The review identified opportunities to strengthen authentication and access control settings.
@@ -42,7 +42,7 @@ report_groups:
     commentary_label: Application Governance
     executive_summary_label: application governance
     executive_summary_priority: strengthening application governance
-    executive_summary_intro: "The assessment also considered **application governance**."
+    executive_summary_intro: The assessment also considered application governance.
     executive_summary_conclusion: Appropriate application controls help reduce the risk of unapproved software
       accessing or disclosing corporate information.
     commentary_intro: Application access and management controls were reviewed.
@@ -52,7 +52,7 @@ report_groups:
     commentary_label: Data Protection
     executive_summary_label: data protection
     executive_summary_priority: strengthening controls protecting corporate information
-    executive_summary_intro: "Opportunities for improvement were identified in **data protection**."
+    executive_summary_intro: Opportunities for improvement were identified in data protection.
     executive_summary_conclusion: These controls help limit unauthorised disclosure or transfer of corporate
       information from managed devices.
     commentary_intro: The review considered controls intended to protect corporate information on managed devices.
@@ -62,7 +62,7 @@ report_groups:
     commentary_label: Lifecycle and Compliance
     executive_summary_label: device lifecycle and compliance
     executive_summary_priority: maintaining supported and compliant devices
-    executive_summary_intro: "**Device lifecycle and compliance** were also reviewed."
+    executive_summary_intro: Device lifecycle and compliance were also reviewed.
     executive_summary_conclusion: Regular lifecycle oversight helps ensure devices remain supported, visible, and
       aligned with organisational security requirements.
     commentary_intro: Findings related to device lifecycle management and compliance oversight.
@@ -72,7 +72,7 @@ report_groups:
     commentary_label: Device Security and Hardening
     executive_summary_label: device security and hardening
     executive_summary_priority: strengthening mobile device hardening
-    executive_summary_intro: "The review identified opportunities to strengthen **device security and hardening**."
+    executive_summary_intro: The review identified opportunities to strengthen device security and hardening.
     executive_summary_conclusion: Hardening measures reduce exposure to unauthorised device interaction and help
       preserve platform security protections.
     commentary_intro: Device security and platform hardening controls were assessed.

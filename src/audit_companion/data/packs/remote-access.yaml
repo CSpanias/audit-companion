@@ -39,7 +39,7 @@ report_groups:
   Platform Configuration:
     executive_summary_label: platform configuration
     executive_summary_priority: maintaining secure and reliable remote access functionality
-    executive_summary_intro: "The review also considered **remote access platform configuration**."
+    executive_summary_intro: The review also considered remote access platform configuration.
     executive_summary_conclusion: These controls help ensure remote connectivity is established consistently
       and in accordance with operational requirements.
     commentary_intro: Platform configuration controls were reviewed to determine whether remote connectivity
@@ -49,7 +49,7 @@ report_groups:
   Authentication:
     executive_summary_label: authentication
     executive_summary_priority: strengthening user and device authentication
-    executive_summary_intro: "Opportunities for improvement were identified in **authentication controls**."
+    executive_summary_intro: Opportunities for improvement were identified in authentication controls.
     executive_summary_conclusion: Strong authentication reduces the likelihood that compromised credentials
       or untrusted devices can be used to obtain remote access.
     commentary_intro: Authentication controls determine whether users and devices can establish trusted remote
@@ -59,7 +59,7 @@ report_groups:
   Administrative Security:
     executive_summary_label: administrative security
     executive_summary_priority: strengthening privileged access safeguards
-    executive_summary_intro: "The review also considered **administrative security**."
+    executive_summary_intro: The review also considered administrative security.
     executive_summary_conclusion: Effective privileged access controls help reduce the impact of account misuse
       and support accountability for administrative actions.
     commentary_intro: Administrative security controls were assessed for the remote access platform.
@@ -68,7 +68,7 @@ report_groups:
   Cryptography:
     executive_summary_label: cryptographic security
     executive_summary_priority: maintaining modern cryptographic protections
-    executive_summary_intro: "**Cryptographic security** was also assessed."
+    executive_summary_intro: Cryptographic security was also assessed.
     executive_summary_conclusion: Modern cryptographic settings help protect the confidentiality and integrity
       of remote access communications.
     commentary_intro: The review assessed cryptographic protocols and algorithms used to protect remote access
@@ -78,7 +78,7 @@ report_groups:
   Access Control:
     executive_summary_label: access governance and control
     executive_summary_priority: restricting and periodically reviewing remote access
-    executive_summary_intro: "The assessment identified opportunities to strengthen **access governance and control**."
+    executive_summary_intro: The assessment identified opportunities to strengthen access governance and control.
     executive_summary_conclusion: These controls help ensure remote access is limited to authorised users,
       devices, networks, and destinations.
     commentary_intro: The review considered how remote access permissions and connectivity were restricted
@@ -88,7 +88,7 @@ report_groups:
   Monitoring and Detection:
     executive_summary_label: monitoring and detection
     executive_summary_priority: improving remote access monitoring and investigation
-    executive_summary_intro: "**Monitoring and detection** controls were also reviewed."
+    executive_summary_intro: Monitoring and detection controls were also reviewed.
     executive_summary_conclusion: Effective logging supports the identification, investigation, and response
       to security-relevant activity.
     commentary_intro: Monitoring controls were assessed to determine whether remote access activity and

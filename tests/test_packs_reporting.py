@@ -35,7 +35,7 @@ def test_assessment_exports_html_and_json(minimal_pack, tmp_path) -> None:
     json_path, html_path = export_results(
         results,
         tmp_path,
-        executive_summary=minimal_pack.executive_summary,
+        executive_summary="**The review assessed** remote access security for {client_name}.",
         commentary_intro="A remote access review was conducted for {client_name}.",
         context_labels={
             "access_platform": "Remote access solution",
@@ -46,9 +46,15 @@ def test_assessment_exports_html_and_json(minimal_pack, tmp_path) -> None:
     assert json_path is not None
     exported = json.loads(json_path.read_text(encoding="utf-8"))
     html_report = html_path.read_text(encoding="utf-8")
+    commentary = html_report.split("<h2>Commentary</h2>", 1)[1].split(
+        "<h2>Remediation</h2>",
+        1,
+    )[0]
     assert exported["findings"][0]["question_id"] == "mfa-enabled"
     assert "<h1>&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;</h1>" in html_report
     assert "<script>alert(" not in html_report
+    assert "<strong>" not in html_report
+    assert "**" not in html_report
     assert "<h2>Executive Summary</h2>" in html_report
     assert "The review assessed remote access security for Example." in html_report
     assert "The assessment identified opportunities for improvement in Authentication." in html_report
@@ -59,20 +65,16 @@ def test_assessment_exports_html_and_json(minimal_pack, tmp_path) -> None:
     )
     assert "<h2>Commentary</h2>" in html_report
     assert "A remote access review was conducted for Example." in html_report
-    assert "<h3>Configuration Summary</h3>" in html_report
+    assert "<h3>Configuration Summary</h3>" not in html_report
+    assert "<table>" in commentary
+    assert "Configuration Summary" not in commentary
     assert "<th scope=\"row\">Remote access solution</th>" in html_report
     assert "<th scope=\"row\">Organisation</th>" in html_report
     assert "<h3>Authentication</h3>" in html_report
     assert (
-        "<strong>Multi-factor authentication is not consistently required.</strong>"
-        in html_report
+        "Multi-factor authentication is not consistently required." in html_report
     )
     assert "&lt;script&gt;Review the MFA configuration.&lt;/script&gt;" in html_report
-    commentary = html_report.split("<h2>Commentary</h2>", 1)[1]
-    commentary = commentary.split(
-        "<h2>Remediation</h2>",
-        1,
-    )[0]
     assert "Scope:" not in commentary
     assert "Remote access can be used without multi-factor authentication." not in (
         commentary
@@ -81,10 +83,14 @@ def test_assessment_exports_html_and_json(minimal_pack, tmp_path) -> None:
     assert "#### " not in html_report
     assert "<h2>Remediation</h2>" in html_report
     assert "Require MFA for all remote access." in html_report
-    assert "<h2>References</h2>" in html_report
+    assert "<h2>References</h2>" not in html_report
+    assert "<h3>References</h3>" in html_report
+    assert "### References" in html_report
+    assert "\n## References\n" not in html_report
     assert "https://www.cisa.gov/secure-our-world/use-strong-passwords" in html_report
     assert "Copy All Markdown" in html_report
-    assert html_report.count("Copy Markdown") == 4
+    assert html_report.count("Copy Markdown") == 3
+    assert 'data-copy="references-markdown"' not in html_report
     assert 'data-copy="executive-summary-markdown"' in html_report
     assert "Copied Markdown to clipboard." in html_report
     assert not (tmp_path / "example-access-review-report.md").exists()
@@ -166,8 +172,10 @@ def test_mdm_report_groups_findings_and_positive_controls_by_platform(
 
     assert "<h3>iOS Devices</h3>" in commentary
     assert "<h3>Android Devices</h3>" in commentary
-    assert "<strong>Device Security and Hardening.</strong>" in commentary
-    assert "<strong>Lifecycle and Compliance.</strong>" in commentary
+    assert "Device Security and Hardening." in commentary
+    assert "Lifecycle and Compliance." in commentary
+    assert "<strong>" not in html_report
+    assert "**" not in html_report
     assert "Positive Observations" in commentary
     assert "Key strengths included" in summary
     assert "receive security updates from the device vendor" in commentary
@@ -230,11 +238,13 @@ def test_remote_access_report_narrates_aovpn_controls_and_ongoing_actions(
         1,
     )[0]
     remediation = html_report.split("<h2>Remediation</h2>", 1)[1].split(
-        "<h2>References</h2>",
+        "</section>",
         1,
     )[0]
 
     assert "Microsoft Always On VPN" in html_report
+    assert "<strong>" not in html_report
+    assert "**" not in html_report
     assert (
         "Device Tunnel connections required machine certificate authentication"
         in commentary
@@ -242,7 +252,8 @@ def test_remote_access_report_narrates_aovpn_controls_and_ongoing_actions(
     assert "Route restrictions and validation controls were enforced" in commentary
     assert "Strong, modern cryptographic algorithms were enforced" in commentary
     assert "Remote access permissions were not subject to periodic review" in commentary
-    assert remediation.count("<li>") == 5
+    remediation_actions = remediation.split("<h3>References</h3>", 1)[0]
+    assert remediation_actions.count("<li>") == 5
     assert "Establish a formal access review process" in remediation
     assert "AES-128" not in html_report
     assert "Perfect Forward Secrecy" not in html_report
@@ -278,7 +289,11 @@ def test_commentary_includes_positive_controls_and_global_references(
 
     assert "<h3>Positive Security Controls</h3>" in commentary
     assert "Multi-factor authentication is required for remote access." in commentary
-    assert "<h2>References</h2>" in html_report
+    remediation = html_report.split("<h2>Remediation</h2>", 1)[1].split(
+        "</section>",
+        1,
+    )[0]
+    assert "<h3>References</h3>" in remediation
     assert "https://www.cisa.gov/secure-our-world/use-strong-passwords" in html_report
     assert "- [https://www.cisa.gov/secure-our-world/use-strong-passwords]" in (
         html_report
@@ -374,14 +389,16 @@ def test_voip_report_uses_grouped_narrative_and_curated_remediation(
         1,
     )[0]
     remediation = html_report.split("<h2>Remediation</h2>", 1)[1].split(
-        "<h2>References</h2>",
+        "</section>",
         1,
     )[0]
 
     assert (
-        "<strong>A VoIP security configuration review was performed for the "
+        "A VoIP security configuration review was performed for the "
         "East Suffolk Council AudioCodes platform"
     ) in summary
+    assert "<strong>" not in html_report
+    assert "**" not in html_report
     assert "Key observations included" not in summary
     assert "Unsupported Software Version." not in commentary
     assert "<h3>Authentication and Identity Security</h3>" in commentary
