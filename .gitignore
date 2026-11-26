@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.mkdocs_cache/
+site/
+*.py[cod]
+*-findings.json
+*-report.md
+*-findings*.xml
+*-report.html

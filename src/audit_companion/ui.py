@@ -1,0 +1,45 @@
+"""Shared Rich console presentation for guided assessments."""
+
+from collections.abc import Callable
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
+
+console = Console()
+
+
+def emit(
+    message: str,
+    output_fn: Callable[[str], None] | None = None,
+    style: str | None = None,
+) -> None:
+    if output_fn is not None:
+        output_fn(message)
+        return
+    console.print(Text(message, style=style))
+
+
+def emit_panel(
+    title: str,
+    message: str,
+    border_style: str,
+    output_fn: Callable[[str], None] | None = None,
+) -> None:
+    if output_fn is not None:
+        output_fn(f"{title}: {message}")
+        return
+    console.print(
+        Panel(
+            Text(message),
+            title=title,
+            border_style=border_style,
+        )
+    )
+
+
+def prompt(
+    message: str,
+    input_fn: Callable[[str], str] | None = None,
+) -> str:
+    return input_fn(message) if input_fn is not None else console.input(message)

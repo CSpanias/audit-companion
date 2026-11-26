@@ -1,0 +1,41 @@
+id: example-access-review
+title: Example access review
+version: "1.0"
+context:
+  - id: access_platform
+    label: Which access platform is in scope?
+    type: choice
+    phase: setup
+    required: true
+    options:
+      - Platform A
+      - Platform B
+  - id: organization
+    label: Organization or tenant name
+    type: text
+    phase: context
+    required: true
+questions:
+  - id: mfa-enabled
+    section: Authentication
+    question: Is multi-factor authentication required for remote access?
+    expected_value: Multi-factor authentication is required for every remote session.
+    evidence: Review the access policy and a representative sign-in configuration.
+    applies_when:
+      access_platform:
+        - Platform A
+    finding_title: Multi-factor authentication is not consistently required
+    description: Remote access can be used without multi-factor authentication.
+    solution: Require multi-factor authentication for all remote access.
+    positive: Multi-factor authentication is required for remote access.
+    references:
+      - https://www.cisa.gov/secure-our-world/use-strong-passwords
+  - id: access-review
+    section: Governance
+    question: Are remote access permissions reviewed periodically?
+    expected_value: Access is reviewed at least quarterly and when roles change.
+    repeat_for:
+      - access_platform
+    finding_title: Remote access permissions are not reviewed periodically
+    description: No recurring review of remote access permissions was confirmed.
+    solution: Establish a recurring review and retain evidence of completion.

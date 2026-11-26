@@ -1,0 +1,56 @@
+site_name: Audit Companion
+site_description: A guided framework for live security assessments.
+site_url: https://cspanias.github.io/audit-companion/
+repo_name: CSpanias/audit-companion
+repo_url: https://github.com/CSpanias/audit-companion
+edit_uri: blob/main/docs/
+strict: true
+
+theme:
+  name: material
+  features:
+    - content.code.copy
+    - navigation.footer
+    - navigation.sections
+    - navigation.tabs
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - toc.follow
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+
+nav:
+  - Overview: index.md
+  - Getting Started:
+      - Installation: installation.md
+      - Workflow: workflow.md
+  - Framework:
+      - Assessment packs: framework/assessment-packs.md
+  - Assessments:
+      - MDM: assessments/mdm.md
+      - Remote access: assessments/remote-access.md
+      - VoIP: assessments/voip.md
+  - Background:
+      - VoIP fundamentals: background/voip-fundamentals.md
+      - BeyondTrust PRA: background/beyondtrust-pra.md
