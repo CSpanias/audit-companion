@@ -142,6 +142,7 @@ def _collect_value(
 ) -> str | int | list[str] | None:
     while True:
         emit(field.label, output_fn, "bold")
+        emit("", output_fn)
         if field.type in ("choice", "multi_choice"):
             for index, option in enumerate(field.options, start=1):
                 emit(f"  {index}. {option}", output_fn, "cyan")
@@ -213,6 +214,7 @@ def conduct_review(
     for current, (question, scope) in enumerate(question_instances, start=1):
         emit(f"[{current}/{len(question_instances)}]", output_fn, "bold cyan")
         emit(question.question, output_fn, "bold")
+        emit("", output_fn)
         if scope:
             emit(
                 "Scope: "
