@@ -29,8 +29,8 @@ answer capture, result generation, and reporting lifecycle.
 ## Current status
 
 The framework includes reusable interactive workflows, built-in assessment
-packs, conditional context and control selection, and JSON, Markdown, and
-self-contained HTML reports.
+packs, conditional context and control selection, and JSON and self-contained
+HTML reports.
 
 Start an assessment by running `audit-companion mdm`,
 `audit-companion remote-access`, or `audit-companion voip`.

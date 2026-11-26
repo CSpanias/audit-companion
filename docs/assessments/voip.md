@@ -15,7 +15,7 @@ management.
    type, identity and SIP providers, management interfaces, and device type.
 3. **Control assessment** — review platform controls using evidence and
    configuration guidance, recording status and optional notes.
-4. **Reporting** — generate a Markdown report and structured findings.
+4. **Reporting** — generate an HTML report and structured JSON findings.
 
 See [VoIP fundamentals](../background/voip-fundamentals.md) for architecture
 and protocol background. The existing AudioCodes-specific control context is
@@ -29,9 +29,8 @@ Run the interactive assessment with:
 audit-companion voip
 ```
 
-The assessment writes `voip-findings.json`, `voip-report.md`, and
-`voip-report.html`. The JSON report includes the response history and
-assessor notes.
+The assessment writes `voip-findings.json` and `voip-report.html`. The JSON
+report includes the response history and assessor notes.
 
 ## References
 

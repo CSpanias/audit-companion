@@ -129,6 +129,7 @@ def collect_context(
         note = prompt("Notes (optional): ", input_fn).strip()
         if note:
             notes[field.id] = note
+        emit("", output_fn)
 
     return context, notes
 
@@ -143,6 +144,7 @@ def _collect_value(
         if field.type in ("choice", "multi_choice"):
             for index, option in enumerate(field.options, start=1):
                 emit(f"  {index}. {option}", output_fn, "cyan")
+            emit("", output_fn)
             prompt_text = (
                 "Select one or more options (comma-separated): "
                 if field.type == "multi_choice"
@@ -223,7 +225,11 @@ def conduct_review(
             emit_panel("Location", question.location, "yellow", output_fn)
         _show_guidance(question.guidance, context, scope, output_fn)
         emit_panel("Expected Value", question.expected_value, "green", output_fn)
-        emit("1. Compliant  2. Non-Compliant  3. Not Applicable  4. Unknown", output_fn)
+        emit("1. Compliant", output_fn)
+        emit("2. Non-Compliant", output_fn)
+        emit("3. Not Applicable", output_fn)
+        emit("4. Unknown", output_fn)
+        emit("", output_fn)
 
         answers = {
             "1": "compliant",
@@ -246,6 +252,7 @@ def conduct_review(
                 notes=notes,
             )
         )
+        emit("", output_fn)
 
     return responses
 
@@ -306,6 +313,7 @@ def run_interview(
 ) -> AssessmentResults:
     """Run the context interview and applicable control questionnaire."""
     emit(f"{pack.title} (v{pack.version})", output_fn, "bold green")
+    emit("", output_fn)
     context, context_notes = collect_context(
         (field for field in pack.context if field.phase == "setup"),
         input_fn=input_fn,

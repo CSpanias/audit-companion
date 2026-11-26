@@ -1,6 +1,7 @@
 """Command-line entry point."""
 
 import argparse
+from datetime import datetime
 from importlib.resources import as_file, files
 from pathlib import Path
 from textwrap import dedent
@@ -72,8 +73,8 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("."),
-        help="Directory for assessment reports (default: current directory)",
+        default=Path("audit-companion"),
+        help="Parent directory for timestamped assessment outputs",
     )
     parser.add_argument(
         "--csacyber",
@@ -102,18 +103,21 @@ def main() -> None:
 
 def _run_pack(pack: AssessmentPack, output_dir: Path, csacyber: bool) -> None:
     results = run_interview(pack)
+    run_timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+    report_dir = output_dir / f"{pack.id}-{run_timestamp}"
+    report_dir.mkdir(parents=True, exist_ok=False)
     xml_paths = []
     unmapped = []
     if csacyber:
         xml_paths, unmapped = export_sureformat_xml(
             results,
             pack,
-            output_dir,
+            report_dir,
             _prompt_hostname,
         )
-    json_path, markdown_path, html_path = export_results(
+    json_path, html_path = export_results(
         results,
-        output_dir,
+        report_dir,
         include_json=not csacyber,
     )
     console.print(
@@ -128,9 +132,9 @@ def _run_pack(pack: AssessmentPack, output_dir: Path, csacyber: bool) -> None:
             border_style="green",
         )
     )
+    console.print(Text(f"Output directory: {report_dir}", style="cyan"))
     if json_path:
         console.print(Text(f"JSON: {json_path}", style="cyan"))
-    console.print(Text(f"Markdown: {markdown_path}", style="cyan"))
     console.print(Text(f"HTML: {html_path}", style="cyan"))
     for xml_path in xml_paths:
         console.print(Text(f"XML: {xml_path}", style="cyan"))

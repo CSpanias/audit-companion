@@ -143,6 +143,9 @@ def test_interview_collects_setup_before_conditioned_context_and_questions() -> 
     assert [response.question_id for response in results.responses] == ["shared", "ios-only"]
     assert results.findings[0]["question_id"] == "shared"
     assert results.positive_observations[0]["question_id"] == "ios-only"
+    assert output[1] == ""
+    assert output[output.index("  2. Android") + 1] == ""
+    assert output.count("") >= len(results.context) + len(results.responses)
 
 
 def test_guidance_uses_the_current_repeated_scope() -> None:
@@ -169,3 +172,4 @@ def test_guidance_uses_the_current_repeated_scope() -> None:
 
     assert any("iOS configuration location" in line for line in output)
     assert not any("Android configuration location" in line for line in output)
+    assert output[-1] == ""

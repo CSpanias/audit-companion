@@ -27,8 +27,9 @@ audit-companion remote-access
 audit-companion voip
 ```
 
-Each command starts its interactive assessment and generates JSON, Markdown,
-and HTML reports. Add `--output-dir reports` to write the reports elsewhere.
+Each command starts its interactive assessment and generates JSON and HTML
+reports in a dedicated timestamped directory under `audit-companion/`. Add
+`--output-dir reports` to choose another parent directory.
 
 To try the pack format with a custom assessment:
 

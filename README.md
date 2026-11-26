@@ -21,9 +21,10 @@ audit-companion voip
 ```
 
 Each command begins the interactive setup and guided control review, then
-writes JSON findings, a Markdown report, and a self-contained HTML report to
-the current directory. Use `--output-dir reports` to choose another output
-directory.
+writes JSON findings and a self-contained HTML report to a dedicated,
+timestamped directory under `audit-companion/`. The HTML report contains a
+unified executive summary, technical commentary, and remediation guidance.
+Use `--output-dir reports` to choose another parent directory.
 
 ## Install for development
 
@@ -40,8 +41,8 @@ audit-companion validate path\to\assessment.yaml
 audit-companion run path\to\assessment.yaml --output-dir .
 ```
 
-Custom packs write `<pack-id>-findings.json`, `<pack-id>-report.md`, and
-`<pack-id>-report.html` to the chosen output directory.
+Custom packs write `<pack-id>-findings.json` and `<pack-id>-report.html` to
+their own timestamped subdirectory under the chosen output directory.
 
 Try the included example:
 

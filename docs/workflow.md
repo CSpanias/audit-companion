@@ -24,11 +24,16 @@ keeping answers and findings scoped to the relevant environment.
 
 ## Outputs
 
-The framework currently exports a JSON assessment result, a Markdown report,
-and a self-contained HTML report suitable for sharing or printing. Each
-response records its question, answer, notes, and optional scope. Reports
-summarize findings, positive observations, and unknown/not-applicable
-responses.
+The framework currently exports a JSON assessment result and a self-contained
+HTML report suitable for sharing or printing. The HTML report presents a
+unified executive summary, technical commentary, and remediation guidance,
+followed by assessment context, findings, positive observations, and response
+history. Each response records its question, answer, notes, and optional
+scope.
+
+Each assessment writes its reports into a dedicated timestamped directory
+under `audit-companion/` by default. Use `--output-dir` to choose another
+parent directory.
 
 Assessment packs may later add specialized outputs through shared adapters,
 without coupling those formats to the interview engine.

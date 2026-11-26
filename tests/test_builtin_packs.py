@@ -1,3 +1,4 @@
+import re
 import sys
 from pathlib import Path
 
@@ -26,7 +27,7 @@ def test_domain_command_starts_without_a_pack_path(command: str) -> None:
     args = build_parser().parse_args([command])
 
     assert args.command == command
-    assert args.output_dir == Path(".")
+    assert args.output_dir == Path("audit-companion")
 
 
 @pytest.mark.parametrize("command", ["mdm", "remote-access", "voip"])
@@ -51,9 +52,13 @@ def test_domain_command_runs_its_builtin_pack_and_exports_reports(
     cli.main()
 
     assert loaded_pack_ids == [command]
-    assert (tmp_path / f"{command}-findings.json").is_file()
-    assert (tmp_path / f"{command}-report.md").is_file()
-    assert (tmp_path / f"{command}-report.html").is_file()
+    run_dirs = list(tmp_path.iterdir())
+    assert len(run_dirs) == 1
+    assert run_dirs[0].is_dir()
+    assert re.fullmatch(rf"{command}-\d{{8}}-\d{{6}}-\d{{6}}", run_dirs[0].name)
+    assert (run_dirs[0] / f"{command}-findings.json").is_file()
+    assert (run_dirs[0] / f"{command}-report.html").is_file()
+    assert not (run_dirs[0] / f"{command}-report.md").exists()
 
 
 def test_mdm_controls_are_filtered_and_scoped_by_selected_platform() -> None:

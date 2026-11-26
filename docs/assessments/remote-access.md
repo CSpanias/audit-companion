@@ -18,7 +18,7 @@ access governance, monitoring, auditing, and platform configuration.
    model, and product version.
 3. **Control assessment** — review applicable controls with evidence and
    platform guidance; capture compliance status and assessor notes.
-4. **Reporting** — generate a Markdown report and structured findings.
+4. **Reporting** — generate an HTML report and structured JSON findings.
 
 For BeyondTrust PRA background and control context, see
 [BeyondTrust PRA](../background/beyondtrust-pra.md).
@@ -31,6 +31,6 @@ Start the guided review with:
 audit-companion remote-access
 ```
 
-The assessment writes `remote-access-findings.json`,
-`remote-access-report.md`, and `remote-access-report.html`. The JSON report
-includes the response history and assessor notes.
+The assessment writes `remote-access-findings.json` and
+`remote-access-report.html`. The JSON report includes the response history and
+assessor notes.

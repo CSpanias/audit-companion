@@ -7,6 +7,7 @@ from rich.panel import Panel
 from rich.text import Text
 
 console = Console()
+MAX_PANEL_WIDTH = 96
 
 
 def emit(
@@ -30,10 +31,11 @@ def emit_panel(
         output_fn(f"{title}: {message}")
         return
     console.print(
-        Panel(
+        Panel.fit(
             Text(message),
             title=title,
             border_style=border_style,
+            width=min(MAX_PANEL_WIDTH, console.width),
         )
     )
 

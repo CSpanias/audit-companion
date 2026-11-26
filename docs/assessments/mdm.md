@@ -32,6 +32,5 @@ Start the guided review with:
 audit-companion mdm
 ```
 
-The assessment writes `mdm-findings.json`, `mdm-report.md`, and
-`mdm-report.html`. The JSON report includes the response history and assessor
-notes.
+The assessment writes `mdm-findings.json` and `mdm-report.html`. The JSON
+report includes the response history and assessor notes.

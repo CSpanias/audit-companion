@@ -5,6 +5,5 @@ __pycache__/
 site/
 *.py[cod]
 *-findings.json
-*-report.md
 *-findings*.xml
 *-report.html
