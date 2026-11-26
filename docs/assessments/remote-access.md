@@ -25,13 +25,12 @@ For BeyondTrust PRA background and control context, see
 
 ## Outputs
 
-The standard standalone outputs are:
+Start the guided review with:
 
-- `remote-access-review-findings.json`
-- `remote-access-review-report.md`
-- `remote-access-review-notes.json`
+```powershell
+audit-companion remote-access
+```
 
-## Migration status
-
-Remote access is a planned Audit Companion assessment pack. Its original
-questions and context fields have not yet been migrated.
+The assessment writes `remote-access-findings.json`,
+`remote-access-report.md`, and `remote-access-report.html`. The JSON report
+includes the response history and assessor notes.

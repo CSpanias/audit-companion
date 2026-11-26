@@ -22,22 +22,18 @@ answer capture, result generation, and reporting lifecycle.
 
 | Pack | Focus | Status |
 | --- | --- | --- |
-| MDM | Microsoft Intune for iOS/iPadOS and Android | Planned migration |
-| Remote access | Microsoft Always On VPN and BeyondTrust PRA | Planned migration |
-| VoIP | AudioCodes Session Border Controllers | Planned migration |
+| MDM | Microsoft Intune for iOS/iPadOS and Android | Available |
+| Remote access | Microsoft Always On VPN and BeyondTrust PRA | Available |
+| VoIP | AudioCodes VoIP platforms | Available |
 
 ## Current status
 
-The repository currently contains the reusable interview core, a validated
-YAML pack format, and a small example pack. The original domain content and
-specialized exports have not yet been migrated. Until then, the current CLI
-accepts a pack file path; domain commands such as `audit-companion voip` are
-the intended user-facing interface once the packs are available.
+The framework includes reusable interactive workflows, built-in assessment
+packs, conditional context and control selection, and JSON, Markdown, and
+self-contained HTML reports.
 
-The planned command names are `mdm`, `remote-access`, and `voip`.
-
-The current example workflow exports JSON findings, Markdown, and a
-self-contained HTML report.
+Start an assessment by running `audit-companion mdm`,
+`audit-companion remote-access`, or `audit-companion voip`.
 
 Start with [installation](installation.md) and the [workflow](workflow.md), or
 read the [assessment pack format](framework/assessment-packs.md).

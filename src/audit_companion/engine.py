@@ -14,6 +14,33 @@ from audit_companion.models import (
 from audit_companion.ui import emit, emit_panel, prompt
 
 
+def _show_guidance(
+    guidance: Mapping[str, str],
+    context: Mapping[str, object],
+    scope: Mapping[str, str],
+    output_fn: Callable[[str], None] | None,
+) -> None:
+    common = guidance.get("common")
+    if common:
+        emit_panel("Evidence", common.strip(), "blue", output_fn)
+
+    selected_values = []
+    for field_id, value in context.items():
+        if field_id in scope:
+            continue
+        selected_values.extend(value if isinstance(value, list) else [value])
+    selected_values.extend(scope.values())
+    normalized_values = [str(value).casefold() for value in selected_values]
+    specific = [
+        text.strip()
+        for key, text in guidance.items()
+        if key != "common"
+        and any(key.casefold() in value for value in normalized_values)
+    ]
+    if specific:
+        emit_panel("Location", "\n\n".join(specific), "yellow", output_fn)
+
+
 class Applicable(Protocol):
     applies_when: dict[str, list[str]]
 
@@ -87,10 +114,13 @@ def collect_context(
             continue
 
         emit(f"[CONTEXT {current}/{len(fields)}]", output_fn, "bold cyan")
+        if field.description:
+            emit_panel("Context", field.description.strip(), "blue", output_fn)
         if field.evidence:
             emit_panel("Evidence", field.evidence, "blue", output_fn)
         if field.location:
             emit_panel("Location", field.location, "yellow", output_fn)
+        _show_guidance(field.guidance, context, {}, output_fn)
 
         value = _collect_value(field, input_fn, output_fn)
         if value is not None:
@@ -146,6 +176,18 @@ def _collect_value(
                 chosen = [field.options[index - 1] for index in selections]
                 if field.type == "choice" and len(chosen) != 1:
                     raise ValueError
+                descriptions = [
+                    field.option_descriptions[option]
+                    for option in chosen
+                    if option in field.option_descriptions
+                ]
+                if descriptions:
+                    emit_panel(
+                        "Selection guidance",
+                        "\n\n".join(descriptions),
+                        "blue",
+                        output_fn,
+                    )
                 return chosen if field.type == "multi_choice" else chosen[0]
             except ValueError:
                 emit("Select a valid option number.", output_fn, "red")
@@ -179,6 +221,7 @@ def conduct_review(
             emit_panel("Evidence", question.evidence, "blue", output_fn)
         if question.location:
             emit_panel("Location", question.location, "yellow", output_fn)
+        _show_guidance(question.guidance, context, scope, output_fn)
         emit_panel("Expected Value", question.expected_value, "green", output_fn)
         emit("1. Compliant  2. Non-Compliant  3. Not Applicable  4. Unknown", output_fn)
 
@@ -223,8 +266,12 @@ def build_results(
             "question_id": question.id,
             "scope": response.scope,
             "section": question.section,
+            "theme": question.theme,
+            "commentary_group": question.commentary_group,
+            "remediation_id": question.remediation_id,
             "title": question.finding_title,
             "description": question.description,
+            "commentary": question.commentary,
             "solution": question.solution,
             "expected_value": question.expected_value,
             "references": question.references,
@@ -235,6 +282,7 @@ def build_results(
         if response.answer == question.expected_answer:
             observation["title"] = question.positive or question.finding_title
             observation["description"] = question.positive or question.description
+            observation["commentary"] = None
             positives.append(observation)
         else:
             findings.append(observation)

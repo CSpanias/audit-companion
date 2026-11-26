@@ -26,14 +26,12 @@ for each platform so the resulting evidence and findings retain their scope.
 
 ## Outputs
 
-The standard standalone outputs are:
+Start the guided review with:
 
-- `mdm-findings.json`
-- `mdm-report.md`
-- `mdm-notes.json`
+```powershell
+audit-companion mdm
+```
 
-## Migration status
-
-MDM is a planned Audit Companion assessment pack. Its original content has not
-yet been migrated; the current prototype's `examples/minimal.yaml` is only a
-framework example.
+The assessment writes `mdm-findings.json`, `mdm-report.md`, and
+`mdm-report.html`. The JSON report includes the response history and assessor
+notes.

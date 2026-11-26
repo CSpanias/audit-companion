@@ -129,5 +129,6 @@ References:
 
 The standalone [Remote-Access-Audit](https://github.com/CSpanias/remote-access-audit)
 tool provides a guided assessment for BeyondTrust PRA. Its assessment
-questions and this background guide are planned for migration as a
-Remote-Access assessment pack in Audit Companion.
+questions are available in Audit Companion with the
+`audit-companion remote-access` command. This background guide provides
+additional context for the PRA controls.

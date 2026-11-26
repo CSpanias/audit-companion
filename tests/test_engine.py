@@ -1,6 +1,7 @@
 from audit_companion.engine import (
     applicable_items,
     build_results,
+    conduct_review,
     expand_question_scopes,
     run_interview,
 )
@@ -142,3 +143,29 @@ def test_interview_collects_setup_before_conditioned_context_and_questions() -> 
     assert [response.question_id for response in results.responses] == ["shared", "ios-only"]
     assert results.findings[0]["question_id"] == "shared"
     assert results.positive_observations[0]["question_id"] == "ios-only"
+
+
+def test_guidance_uses_the_current_repeated_scope() -> None:
+    pack = make_pack()
+    question = pack.questions[0].model_copy(
+        update={
+            "applies_when": {"platforms": ["iOS"]},
+            "repeat_for": ["platforms"],
+            "guidance": {
+                "ios": "iOS configuration location",
+                "android": "Android configuration location",
+            },
+        }
+    )
+    answers = iter(["1", ""])
+    output: list[str] = []
+
+    conduct_review(
+        [question],
+        {"platforms": ["iOS", "Android"]},
+        lambda _prompt: next(answers),
+        output.append,
+    )
+
+    assert any("iOS configuration location" in line for line in output)
+    assert not any("Android configuration location" in line for line in output)

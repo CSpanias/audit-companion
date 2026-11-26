@@ -1,0 +1,842 @@
+id: voip
+title: VoIP Security Assessment
+version: '1.0'
+context:
+- id: client_name
+  label: What is the organisation's name?
+  type: text
+  phase: setup
+  required: true
+- id: voip_solution
+  label: Which VoIP platform vendor is being reviewed?
+  type: choice
+  phase: setup
+  required: true
+  options:
+  - AudioCodes
+- id: device_type
+  label: Which VoIP platform component is being assessed?
+  type: choice
+  phase: context
+  required: true
+  options:
+  - Session Border Controller (SBC)
+  - Voice Gateway
+  - Private Branch Exchange (PBX) / Call Manager
+  - Cloud Voice Platform
+  - Mixed Environment
+  applies_when:
+    voip_solution:
+    - AudioCodes
+- id: deployment_type
+  label: How is the VoIP solution deployed?
+  type: choice
+  phase: context
+  required: true
+  options:
+  - Cloud Hosted
+  - On-Premises
+  - Hybrid
+  - Other
+  applies_when:
+    voip_solution:
+    - AudioCodes
+- id: identity_provider
+  label: What is the primary identity provider / authentication source?
+  type: choice
+  phase: context
+  required: true
+  options:
+  - Microsoft Entra ID
+  - Active Directory
+  - LDAP
+  - RADIUS
+  - Local Accounts
+  - SAML / SSO
+  - Other
+  guidance:
+    common: Identify the authentication source used for administrator access to the VoIP platform. This
+      may differ from user authentication mechanisms used by telephony services.
+  applies_when:
+    voip_solution:
+    - AudioCodes
+- id: sip_provider
+  label: Which telephony service provider (SIP trunk) is used?
+  type: text
+  phase: context
+  required: true
+  guidance:
+    common: Record the external SIP service provider used for PSTN connectivity. Examples include BT,
+      Gamma, Vodafone, Virgin Media Business, and others.
+  applies_when:
+    voip_solution:
+    - AudioCodes
+- id: platform_model
+  label: What platform model is being reviewed?
+  type: text
+  phase: context
+  required: true
+  guidance:
+    common: Record the exact platform model (e.g. Mediant VE SBC, Mediant 800 SBC, Mediant 1000 Gateway,
+      Cisco Unified Border Element, or an equivalent model).
+    audiocodes: Monitor > Summary > Device Information > Product Name
+  applies_when:
+    voip_solution:
+    - AudioCodes
+- id: software_version
+  label: What software version is installed?
+  type: text
+  phase: context
+  required: true
+  guidance:
+    common: "Record the currently installed software, firmware, or operating system \nversion where available.\
+      \ This information is used to assess platform \nsupportability and patch status."
+    audiocodes: Monitor > Summary > Device Information > Version ID
+  applies_when:
+    voip_solution:
+    - AudioCodes
+- id: management_address
+  label: What is the primary management IP address, hostname, or URL?
+  type: text
+  phase: context
+  required: true
+  guidance:
+    common: Record the primary management IP address, FQDN, or hostname used to administer the VoIP platform.
+      This information is used for assessment scoping, evidence collection, and reporting purposes.
+  applies_when:
+    voip_solution:
+    - AudioCodes
+questions:
+- id: unsupported-software-version
+  question: Is the AudioCodes platform running a vendor-supported software version?
+  expected_value: "The platform is running a supported and fully patched software version.\n\nPreference\
+    \ should be given to the current supported Long-TermSupport (LTS) \nrelease stream where applicable."
+  expected_answer: compliant
+  finding_title: Unsupported Software Version
+  description: The AudioCodes platform was running an unsupported or end-of-life software  version.
+  solution: Establish a lifecycle management process to ensure the AudioCodes platform  remains within
+    a vendor-supported software lifecycle and is upgraded in  accordance with vendor guidance.
+  theme: Platform Configuration
+  section: platform_configuration
+  commentary_group: Platform Configuration and Lifecycle Management
+  remediation_id: platform_lifecycle
+  commentary: Software versions that are no longer supported by the vendor may contain  publicly known
+    vulnerabilities and may no longer receive security updates,  bug fixes, or technical support. As VoIP
+    platforms often process  business-critical communications and may be accessible from untrusted  networks,
+    unsupported software can increase the risk of unauthorised  access, service disruption, fraud, and
+    compromise of administrative  functions.
+  positive: The assessed AudioCodes platform was running a vendor-supported software  version.
+  guidance:
+    common: "Review the firmware version and update status of the assessed platform. \nConfirm the platform\
+      \ is running a vendor-supported software release."
+    audiocodes: 'Monitor > Device Information > Version ID
+
+
+      Check: https://www.audiocodes.com/media/h3yfqroz/sbc-gateway-release-notes-for-long-term-support-lts-versions-740a500.pdf'
+  applies_when:
+    voip_solution:
+    - AudioCodes
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+- id: insecure-ldap-communication
+  question: Are LDAP communications protected using TLS?
+  expected_value: '- Use TLS = Yes
+
+    - TLS Context assigned'
+  expected_answer: compliant
+  finding_title: LDAP Communication Not Protected By TLS
+  description: LDAP communications were performed without transport encryption.
+  solution: Enable TLS for LDAP communications and assign an appropriate TLS  Context to protect authentication
+    traffic.
+  theme: Authentication
+  section: authentication
+  commentary_group: Authentication and Identity
+  remediation_id: identity_and_access_management
+  commentary: LDAP authentication traffic may contain usernames, passwords, and  directory information.
+    Without TLS protection, sensitive authentication  data may be exposed to interception or manipulation.
+  positive: LDAP communications were protected using TLS.
+  guidance:
+    common: "Review LDAP authentication configuration and determine whether \ncommunications with LDAP\
+      \ servers are protected using TLS."
+    audiocodes: Setup > IP Network > AAA Servers > LDAP Servers
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+  - https://techdocs.audiocodes.com/session-border-controller-sbc/security/version-740/Content/Security/Secure%20LDAP%20Communication.htm
+  applies_when:
+    voip_solution:
+    - AudioCodes
+- id: admin-mfa-not-enforced
+  question: Is multi-factor authentication enforced for administrative access where supported?
+  expected_value: "MFA is enforced for administrative access where the deployment architecture \nprovides\
+    \ MFA capability.\n\nExamples include:\n- AudioCodes Live / IAM\n- Federated identity providers\n\
+    - SAML-based authentication\n- Entra ID integrations\n- Other MFA-capable authentication systems\n\
+    \nStandalone on-premises deployments using local AudioCodes administrative \naccounts may not support\
+    \ MFA natively and may therefore be assessed as \nNot Applicable."
+  expected_answer: compliant
+  finding_title: Administrator Multi-Factor Authentication Not Enforced
+  description: Multi-factor authentication was not enforced for administrative accounts.
+  solution: Configure multi-factor authentication as a mandatory control for all  administrative and privileged
+    accounts where supported.
+  theme: Authentication
+  section: authentication
+  commentary_group: Authentication and Identity
+  remediation_id: identity_and_access_management
+  commentary: Administrative accounts provide highly privileged access to the VoIP  environment. Compromise
+    of such accounts may allow an attacker to modify  configurations, weaken security controls, intercept
+    communications, or  disrupt telephony services.
+  positive: Multi-factor authentication was enforced for administrative access.
+  guidance:
+    common: "Determine whether administrative authentication is performed using \nlocal AudioCodes accounts\
+      \ or through an external identity provider.\n\nIf administrative access relies solely on local AudioCodes\
+      \ accounts, \nMFA may not be supported and the control may be assessed as \nNot Applicable."
+  applies_when:
+    voip_solution:
+    - AudioCodes
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+- id: weak-password-policy
+  question: Are strong password controls enforced for local administrative accounts?
+  expected_value: '- Password complexity: Enable (1)
+
+    - Minimum password length: 8+ (default)
+
+    - Password history: Enable (1)
+
+    - Check weak passwords: Checked (also check the password list used)'
+  expected_answer: compliant
+  finding_title: Weak Password Policy Configured
+  description: Weak password controls were configured for administrative accounts.
+  solution: Enforce strong password complexity requirements, prevent password reuse,  and implement controls
+    that identify or restrict the use of weak passwords.
+  theme: Authentication
+  section: authentication
+  commentary_group: Authentication and Identity
+  remediation_id: identity_and_access_management
+  commentary: Weak password requirements increase the likelihood of credential compromise  through password
+    guessing, reuse, or brute-force attacks. Administrative  accounts should be protected by strong password
+    controls.
+  positive: Strong password controls were enforced for administrative accounts.
+  guidance:
+    common: "Review password policy settings and confirm strong password requirements \nare enforced for\
+      \ administrative accounts."
+    audiocodes: 'Setup > Administration > Web & CLI > Local Users / Web Settings
+
+
+      Review password complexity, history, age, and weak password detection.'
+  applies_when:
+    voip_solution:
+    - AudioCodes
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+- id: authentication-bruteforce-protection-not-configured
+  question: Are protections implemented against repeated failed authentication attempts?
+  expected_value: "- Deny Authentication Timer (IP-based) and Deny Access On Fail Count are \n  configured\
+    \ (Not 0)\n- Block Duration (account-based) is configured"
+  expected_answer: compliant
+  finding_title: Authentication Brute-Force Protection Not Configured
+  description: Protections against repeated authentication failures were not configured.
+  solution: Implement authentication protection mechanisms such as account lockout,  authentication throttling,
+    back-off timers, or temporary source  restrictions following repeated failed login attempts.
+  theme: Authentication
+  section: authentication
+  commentary_group: Authentication and Identity
+  remediation_id: identity_and_access_management
+  commentary: Without brute-force protection controls, administrative accounts may be  vulnerable to password
+    guessing and automated authentication attacks.
+  positive: Protections were implemented against repeated failed authentication  attempts.
+  guidance:
+    common: Review authentication protection settings and confirm accounts are temporarily restricted
+      following repeated failed login attempts.
+    audiocodes: 'Setup > Administration > Web & CLI > Local Users > Block Duration
+
+      Setup > Administration > Web & CLI > Web Settings > Security > Deny Authentication Timer / Deny
+      Access On Fail Count'
+  applies_when:
+    voip_solution:
+    - AudioCodes
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+- id: shared-accounts-permitted
+  question: Are individual administrator accounts required?
+  expected_value: "Review configured user accounts and confirm access is assigned to named \nindividuals\
+    \ rather than shared accounts."
+  expected_answer: compliant
+  finding_title: Shared Accounts Permitted
+  description: Shared administrative accounts were permitted.
+  solution: Replace shared accounts with uniquely assigned administrator accounts to  improve accountability
+    and auditability.
+  theme: Authentication
+  section: authentication
+  commentary_group: Authentication and Identity
+  remediation_id: identity_and_access_management
+  commentary: Shared administrative accounts prevent the attribution of administrative  actions to specific
+    individuals. As multiple users authenticate using the  same identity, accountability, change tracking,
+    and incident investigation  activities become more difficult.
+  positive: Administrative access was performed using uniquely assigned accounts.
+  guidance:
+    common: Review administrative accounts and confirm that access is assigned to named individuals rather
+      than shared or generic accounts.
+    audiocodes: Setup > Administration tab > Web & CLI folder > Local Users
+  applies_when:
+    voip_solution:
+    - AudioCodes
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+- id: default-accounts-insecured
+  question: Are default accounts secured?
+  expected_value: "Review local accounts and confirm default accounts (Admin:Admin, User:User) \nare secured,\
+    \ disabled, or removed."
+  expected_answer: compliant
+  finding_title: Default Accounts Not Secured
+  description: One or more default accounts remained enabled or were configured with  default credentials.
+  solution: Disable default accounts where they are not required. If a default account  must remain enabled,
+    ensure default credentials are replaced with strong  unique credentials and that access is appropriately
+    restricted and  monitored.
+  theme: Authentication
+  section: authentication
+  commentary_group: Authentication and Identity
+  remediation_id: identity_and_access_management
+  commentary: Default accounts are widely known, commonly documented, and may be targeted  by attackers
+    during unauthorised access attempts. If default credentials  remain unchanged, an attacker may be
+    able to obtain administrative access  without needing to compromise a legitimate user account.
+  positive: Default accounts were either removed, disabled, or secured with non-default  credentials.
+  guidance:
+    common: "Review locally configured accounts and determine whether any \nvendor-supplied default accounts\
+      \ remain enabled with default credentials."
+    audiocodes: Setup > Administration > Web & CLI > Local Users
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+  - https://techdocs.audiocodes.com/session-border-controller-sbc/security/version-740/Content/Security/Change%20Default%20Management.htm
+  applies_when:
+    voip_solution:
+    - AudioCodes
+- id: http-management-enabled
+  question: Is administrative web access restricted to HTTPS only?
+  expected_value: HTTPS Only
+  expected_answer: compliant
+  finding_title: Administrative Interface Accessible Over HTTP
+  description: Administrative access to the platform was available over unencrypted HTTP.
+  solution: Disable HTTP management access and enforce HTTPS for all administrative  activity.
+  theme: Administrative Security
+  section: administrative_security
+  commentary_group: Administrative Interface Security
+  remediation_id: administrative_interface_security
+  commentary: HTTP does not provide confidentiality or integrity protection.  Administrator credentials
+    and session data may be exposed to interception  by an attacker with access to the network path.
+  positive: Administrative access was restricted to HTTPS.
+  guidance:
+    common: "Review the configured Web Interfaces and confirm:\n\n  - HTTP access is disabled\n  - HTTPS\
+      \ Only is enabled\n  - A TLS Context is assigned to the management interface\n\n  Where HTTPS is\
+      \ used, confirm the assigned TLS Context enforces \n  supported TLS versions and cryptographic settings."
+    audiocodes: Setup > Administration tab > Web & CLI folder > Web Interfaces
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+  - https://techdocs.audiocodes.com/session-border-controller-sbc/security/version-740/Content/Security/Secure%20HTTP%20Access%20using%20HTTPS.htm
+  applies_when:
+    voip_solution:
+    - AudioCodes
+- id: insecure-cli-access-enabled
+  question: Is administrative CLI access restricted to secure protocols?
+  expected_value: SSH enabled, Telnet disabled
+  expected_answer: compliant
+  finding_title: Insecure Administrative CLI Access Enabled
+  description: An insecure management protocol was enabled for CLI administration.
+  solution: Restrict SSH access to authorised administrators and approved management  networks.
+  theme: Administrative Security
+  section: administrative_security
+  commentary_group: Administrative Interface Security
+  remediation_id: administrative_interface_security
+  commentary: Protocols such as Telnet do not provide confidentiality or integrity  protection. Administrative
+    credentials and management traffic may be  exposed to interception by attackers with network access.
+  positive: Administrative CLI access was restricted to secure protocols.
+  guidance:
+    common: Review SSH configuration and access controls. Confirm SSH access is limited to authorised
+      administrators and, where possible, restricted to approved networks or management workstations.
+    audiocodes: "Setup menu > Administration tab > Web & CLI folder > Telnet / SSH \nInterfaces"
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+  - https://techdocs.audiocodes.com/session-border-controller-sbc/security/version-740/Content/Security/Secure%20Telnet%20Sessions.htm
+  - https://techdocs.audiocodes.com/session-border-controller-sbc/security/version-740/Content/Security/Secure%20CLI%20Sessions%20by%20SSH.htm
+  applies_when:
+    voip_solution:
+    - AudioCodes
+- id: excessive-administrative-privileges
+  question: Are administrative accounts assigned to appropriate built-in roles?
+  expected_value: "Review User Levels:\n\n- Monitor\n- Administrator\n- Security Administrator\n\nConfirm\
+    \ role separation is used where appropriate and users are not \nunnecessarily assigned Security Administrator\
+    \ privileges."
+  expected_answer: compliant
+  finding_title: Administrative Accounts Not Assigned Appropriate Roles
+  description: Administrative accounts were assigned excessive privilege levels or role  separation was
+    not effectively utilised.
+  solution: Review management user accounts and assign the lowest privilege level  necessary. Use the
+    built-in Monitor, Administrator, and Security  Administrator roles to separate administrative responsibilities
+    where  appropriate.
+  theme: Administrative Security
+  section: administrative_security
+  commentary_group: Administrative Interface Security
+  remediation_id: privileged_access_governance
+  commentary: Excessive administrative privileges increase the risk of accidental misconfiguration, unauthorised
+    changes, and misuse of privileged functionality. Assigning users to appropriate built-in roles helps
+    limit  access to only the administrative capabilities required for their  responsibilities.
+  positive: Administrative accounts were assigned appropriate built-in roles.
+  guidance:
+    common: "Review configured management accounts and assigned user levels. Confirm \nbuilt-in role separation\
+      \ is used and that users are not unnecessarily \nassigned highly privileged roles."
+    audiocodes: Setup > Administration tab > Web & CLI folder > Local Users
+  applies_when:
+    voip_solution:
+    - AudioCodes
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+- id: excessive-session-timeout
+  question: Is the administrative session timeout configured appropriately?
+  expected_value: 15 (default) or less
+  expected_answer: compliant
+  finding_title: Administrative Session Timeout Not Appropriately Configured
+  description: Administrative sessions remained active for longer than required.
+  solution: Configure an appropriate inactivity timeout to ensure unused administrative  sessions are
+    automatically terminated.
+  theme: Administrative Security
+  section: administrative_security
+  commentary_group: Administrative Interface Security
+  remediation_id: administrative_interface_security
+  commentary: Excessive session timeouts increase the likelihood of unauthorised access  through unattended
+    or abandoned administrative sessions.
+  positive: Administrative sessions were terminated following an appropriate period of  inactivity.
+  guidance:
+    common: "Review the web management session settings and confirm inactive \nadministrative sessions\
+      \ are automatically terminated after an appropriate \nperiod of inactivity."
+    audiocodes: "Setup > Administration tab > Web & CLI folder > Local Users > Web Session \nTimeout"
+  applies_when:
+    voip_solution:
+    - AudioCodes
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+- id: web-hostname-not-enforced
+  question: Is the web management interface configured to enforce access through a hostname?
+  expected_value: '- Web Server Name: not empty
+
+    - Enforce Web Host Name: Enable'
+  expected_answer: compliant
+  finding_title: Web Management Hostname Enforcement Not Configured
+  description: The web management interface was accessible directly through its IP address  and hostname
+    enforcement was not configured.
+  solution: Configure a dedicated hostname (FQDN) for the administrative web interface  and enable hostname
+    enforcement where operationally feasible. Ensure the  hostname is correctly registered in DNS and
+    administrative users access the  platform using the approved hostname.
+  theme: Administrative Security
+  section: administrative_security
+  commentary_group: Administrative Interface Security
+  remediation_id: administrative_interface_security
+  commentary: Accessing administrative interfaces through an approved hostname can help  reduce exposure
+    to HTTP Host header attacks and DNS rebinding attacks.  Direct IP-based access may bypass hostname-based
+    protections and increase  the risk of certain web application attack scenarios.
+  positive: The web management interface was configured with an approved hostname and  hostname enforcement
+    was enabled.
+  guidance:
+    common: 'Review web management settings and determine whether a hostname
+
+      has been configured for the management interface and whether
+
+      hostname enforcement is enabled.'
+    audiocodes: "Setup > Administration > Web & CLI > Web Settings > Web Server Name / \nEnforce Web Host\
+      \ Name"
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+  - https://techdocs.audiocodes.com/session-border-controller-sbc/security/version-740/Content/Security/hostname-for-web-interface.htm
+  applies_when:
+    voip_solution:
+    - AudioCodes
+- id: csrf-protection-not-enabled
+  question: Is CSRF protection enabled for the web management interface?
+  expected_value: '- CSRFProtection: Enable (1) (default)'
+  expected_answer: compliant
+  finding_title: Administrative Interface CSRF Protection Not Enabled
+  description: Cross-Site Request Forgery (CSRF) protection was not enabled for the administrative web
+    interface.
+  solution: Enable CSRF protection for the web management interface and ensure  administrative actions
+    are validated using anti-forgery tokens or  equivalent request validation mechanisms.
+  theme: Administrative Security
+  section: administrative_security
+  commentary_group: Administrative Interface Security
+  remediation_id: administrative_interface_security
+  commentary: 'CSRF attacks occur when an authenticated administrator is tricked into  submitting unintended
+    requests to a trusted management interface. If  successful, an attacker may be able to perform administrative
+    actions using  the victim''s authenticated session.
+
+    CSRF protection uses unique request validation tokens to verify that  configuration changes and other
+    administrative actions originate from  legitimate requests generated by the management interface rather
+    than from  malicious third-party websites.'
+  positive: CSRF protection was enabled and administrative actions were protected  against forged web
+    requests.
+  guidance:
+    common: 'Review web management security settings and determine whether
+
+      Cross-Site Request Forgery (CSRF) protection is enabled.
+
+
+      Confirm the management interface validates user actions using
+
+      anti-forgery tokens or equivalent request validation mechanisms.'
+    audiocodes: System > Web > CSRFprotection
+  applies_when:
+    voip_solution:
+    - AudioCodes
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+- id: ssh-key-authentication-not-used
+  question: Is SSH configured to use key-based authentication where operationally feasible?
+  expected_value: SSH public keys are configured and SSHRequirePublicKey is enabled
+  expected_answer: compliant
+  finding_title: SSH Key-Based Authentication Not Used
+  description: SSH administration relied solely on password-based authentication.
+  solution: Implement SSH key-based authentication for administrative access where  operationally feasible
+    and operational requirements permit.
+  theme: Administrative Security
+  section: administrative_security
+  commentary_group: Administrative Interface Security
+  remediation_id: administrative_interface_security
+  commentary: Password-based SSH authentication is generally more susceptible to  credential attacks than
+    key-based authentication. Public/private key  authentication can provide stronger assurance of administrator
+    identity and reduce the risk of credential compromise.
+  positive: SSH administration used key-based authentication.
+  guidance:
+    common: "Review SSH authentication settings and determine whether SSH access \nrelies on public/private\
+      \ key pairs rather than passwords where \noperationally feasible."
+    audiocodes: Setup > Administration tab > Web & CLI folder > Local Users
+  applies_when:
+    voip_solution:
+    - AudioCodes
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+- id: insecure-snmp-configuration
+  question: Are SNMP services configured securely?
+  expected_value: '- SNMPv3 preferred
+
+    - Default community strings (READ-ONLY -> public, READ-WRITE -> private)
+
+    are changed'
+  expected_answer: compliant
+  finding_title: Insecure SNMP Configuration
+  description: SNMP services were configured using insecure protocols, weak community  strings, or unrestricted
+    access controls.
+  solution: Use SNMPv3 wherever possible and enable authentication and privacy  protection. Remove default
+    community strings and restrict access to  approved management systems through Trusted Manager controls.
+  theme: Administrative Security
+  section: administrative_security
+  commentary_group: Administrative Interface Security
+  remediation_id: administrative_interface_security
+  commentary: Insecure SNMP configurations may expose sensitive management information  and provide unauthorised
+    administrative access. Earlier SNMP versions  rely on community strings that may be intercepted or
+    guessed,  particularly when default values are used.
+  positive: SNMP services were configured using secure authentication and access  controls.
+  guidance:
+    common: 'Review SNMP configuration and determine whether secure management
+
+      protocols are used.
+
+
+      Confirm:
+
+      - SNMPv3 is used where possible
+
+      - Default community strings are not present
+
+      - Trusted managers are configured
+
+      - Authentication and privacy settings are enabled'
+    audiocodes: Setup > Administration > SNMP > SNMP V3 Users / SNMP Community Settings
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+  - https://techdocs.audiocodes.com/session-border-controller-sbc/security/version-740/Content/Security/Secure%20SNMP%20Interface%20Access.htm
+  applies_when:
+    voip_solution:
+    - AudioCodes
+- id: insufficient-management-access-restrictions
+  question: Is management access restricted to approved systems or networks?
+  expected_value: "Evidence exists that management services are restricted to approved\nmanagement networks,\
+    \ hosts, or interfaces. Examples include:\n\n  - Dedicated management VLANs\n  - OAMP interfaces\n\
+    \  - Firewall restrictions\n  - Trusted host restrictions\n  - Jump hosts\n  - Administrative workstations\n\
+    \  - Network segmentation\n  - Management Access Lists\n\nWhere no technical restriction exists, management\
+    \ services should not be \ndirectly accessible from untrusted networks."
+  expected_answer: compliant
+  finding_title: Management Access Not Adequately Restricted
+  description: Administrative management services were accessible from unnecessary systems  or networks.
+  solution: Restrict management services to approved administrative workstations, jump  hosts, or management
+    networks.
+  theme: Access Control
+  section: access_control
+  commentary_group: Administrative Access Control
+  remediation_id: privileged_access_governance
+  commentary: Restricting management access reduces the attack surface of the platform  and helps protect
+    administrative interfaces from unauthorised access  attempts originating from internal or external
+    networks.
+  positive: Management access was restricted to approved systems and networks.
+  guidance:
+    common: "Review management interface configuration and determine whether access is \nrestricted to\
+      \ approved management networks, hosts, or administrative \nsystems. Evidence may include:\n\n- OAMP\
+      \ interface separation\n- Firewall restrictions\n- Trusted host configuration\n- Dedicated management\
+      \ VLANs\n- Jump hosts"
+    audiocodes: 'Setup > Administration tab > Web & CLI folder > Web Interfaces
+
+
+      Setup > Administration > Web & CLI > Management Access List'
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+  - https://techdocs.audiocodes.com/session-border-controller-sbc/security/version-740/Content/Security/Define%20Web%20Telnet%20and%20SSH.htm
+  applies_when:
+    voip_solution:
+    - AudioCodes
+- id: administrative-access-not-reviewed
+  question: Are inactive administrative accounts identified and managed?
+  expected_value: "Where multiple administrative accounts exist, inactive privileged accounts \nare identified\
+    \ and managed.\n\n  - User Inactivity Timeout:  90 or less\n  - No inactive privileged accounts are\
+    \ identified"
+  expected_answer: compliant
+  finding_title: Administrative Access Not Periodically Reviewed
+  description: Dormant, inactive, or unnecessary administrative accounts were not adequately identified
+    or managed.
+  solution: Configure an appropriate User Inactivity Timeout and periodically review  administrative accounts.
+    Disable, remove, or otherwise manage dormant,  inactive, and unnecessary privileged accounts.
+  theme: Access Control
+  section: access_control
+  commentary_group: Administrative Access Control
+  remediation_id: privileged_access_governance
+  commentary: Privileged accounts that are no longer required may provide an unnecessary  attack surface
+    and increase the risk of unauthorised access. The ability to  identify inactive users helps administrators
+    detect dormant accounts and  manage access appropriately.
+  positive: Inactive administrative accounts were identifiable and no unnecessary,  dormant, or unexplained
+    privileged accounts were observed.
+  guidance:
+    common: "Review administrative accounts for signs of inactivity. Determine whether \nunused privileged\
+      \ accounts are identified and managed appropriately."
+    audiocodes: 'Setup > Administration > Web & CLI > Local Users > Status
+
+
+      Setup > Administration > Web & CLI > Web Settings'
+  applies_when:
+    voip_solution:
+    - AudioCodes
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+- id: weak-tls-configuration
+  question: Are only supported TLS versions permitted for administrative and VoIP communications?
+  expected_value: Only TLS 1.2 and/or TLS 1.3 are permitted
+  expected_answer: compliant
+  finding_title: Weak TLS Configuration
+  description: Older TLS versions were permitted for management or VoIP communications.
+  solution: Enforce the use of TLS 1.2 and TLS 1.3 for management and VoIP  communications by removing
+    support for older protocol versions.
+  theme: Cryptography
+  section: cryptography
+  commentary_group: Cryptography and Communications Security
+  remediation_id: cryptography_and_communications
+  commentary: Deprecated TLS versions contain known weaknesses and may expose management  interfaces and
+    VoIP communications to downgrade and cryptographic attacks.
+  positive: VoIP communications were restricted to supported TLS versions.
+  guidance:
+    common: "TLSv1.2, TLSv1.3, or TLSv1.2 and TLSv1.3 enabled. TLS 1.0 and TLS 1.1 \ndisabled."
+    audiocodes: Setup > IP Network tab > Security folder > TLS Contexts > TLS Version
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+  - https://techdocs.audiocodes.com/session-border-controller-sbc/security/version-740/Content/Security/Use%20TLS%20Version%201%202%20or%201%203.htm
+  applies_when:
+    voip_solution:
+    - AudioCodes
+- id: weak-cryptography
+  question: Are only supported cryptographic algorithms and cipher suites permitted?
+  expected_value: '- Cipher Server and Cipher Client: DEFAULT is accepted
+
+    - Key Exchange Groups: X25519:P-256:P-384:X448 (default)
+
+    - DH Key Size: 2048 bits or greater'
+  expected_answer: compliant
+  finding_title: Weak Cryptographic Algorithms Permitted
+  description: Weak or deprecated cryptographic algorithms, key exchange settings, or  cryptographic parameters
+    remained enabled.
+  solution: Align cryptographic settings with current vendor guidance and industry best  practice. Remove
+    support for deprecated cipher suites, weak cryptographic  algorithms, and insufficient key exchange
+    parameters.
+  theme: Cryptography
+  section: cryptography
+  commentary_group: Cryptography and Communications Security
+  remediation_id: cryptography_and_communications
+  commentary: Weak or deprecated cryptographic settings may reduce the confidentiality  and integrity
+    of administrative and VoIP communications. Legacy cipher  suites, weak key exchange mechanisms, and
+    insufficient cryptographic  parameters may increase the risk of interception, downgrade attacks, or  compromise
+    of encrypted communications.
+  positive: Strong, modern cryptographic algorithms and key exchange parameters were  enforced.
+  guidance:
+    common: 'Review cryptographic configuration including cipher suites, encryption
+
+      algorithms, key exchange groups, and Diffie-Hellman parameters.
+
+      Confirm deprecated, weak, or unnecessary cryptographic algorithms
+
+      are disabled.'
+    audiocodes: "Setup > IP Network tab > Security folder > TLS Contexts > \nCipher Server / Cipher Client\
+      \ / Key Exchange Groups / DH Key Size"
+  applies_when:
+    voip_solution:
+    - AudioCodes
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+- id: signalling-and-media-encryption-not-enforced
+  question: Are SIP signalling (SIPS) and voice communications (SRTP) encrypted where supported?
+  expected_value: "TLS and SRTP are enabled where supported by connected systems and service \nproviders.\n\
+    \  - Media Security: Enable (SRTP)\n  - SIPS: Enable (SIPS)\n\nWhere encryption is not supported,\
+    \ the limitation should be documented."
+  expected_answer: compliant
+  finding_title: VoIP Signalling and Media Encryption Not Enforced
+  description: SIP signalling and/or RTP media traffic were transmitted without encryption  despite support
+    for SIPS and SRTP being available.
+  solution: Enable SIPS (SIP over TLS) for SIP signalling and Secure RTP (SRTP) for  voice media wherever
+    supported by connected platforms, gateways, PBXs, and  service providers.
+  theme: Cryptography
+  section: cryptography
+  commentary_group: Cryptography and Communications Security
+  remediation_id: cryptography_and_communications
+  commentary: 'VoIP communications consist of SIP signalling and RTP media traffic. SIP  signalling contains
+    information used to establish and manage calls, while  RTP carries the voice conversation itself.
+
+    Without SIPS (SIP over TLS), call metadata, routing information, and authentication details may be
+    exposed to interception or manipulation. Without SRTP, voice conversations may be susceptible to eavesdropping
+    by  attackers with access to the network path.'
+  positive: SIP signalling was protected using SIPS and voice media was protected using  SRTP where supported
+    by connected systems.
+  guidance:
+    common: "Review SIP trunk, gateway, and VoIP security configuration to determine \nwhether SIP signalling\
+      \ is protected using TLS and whether voice \ncommunications are protected using SRTP where supported\
+      \ by connected \nsystems and service providers."
+    audiocodes: 'Setup > Signaling & Media > Media > Media Security (SRTP)
+
+
+      Setup > Signaling & Media > SIP Definitions > Transport Settings (SIPS)'
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+  - https://techdocs.audiocodes.com/session-border-controller-sbc/security/version-740/Content/Security/Secure%20SIP%20using%20TLS%20SIPS.htm
+  - https://techdocs.audiocodes.com/session-border-controller-sbc/security/version-740/Content/Security/Secure%20Media%20RTP%20Traffic%20using.htm
+  applies_when:
+    voip_solution:
+    - AudioCodes
+- id: ids-not-configured
+  question: Are intrusion detection controls configured to detect and respond to malicious SIP activity?
+  expected_value: "For IDS:\n  - Intrusion Detection System (IDS): Enable\n  - One or more IDS Policies\
+    \ are configured and applied.\n\nFor Malicious Signatures:\n- Malicious signatures configured\n- Malicious\
+    \ Signature Database: Enable\n- Message Policy: Policy applied per SIP interface"
+  expected_answer: compliant
+  finding_title: Intrusion Detection Controls Not Configured
+  description: Intrusion detection controls were not configured to detect or respond to  malicious SIP
+    activity.
+  solution: Enable intrusion detection functionality and configure policies that detect  authentication
+    failures, malformed SIP messages, connection abuse, dialog  establishment failures, and other suspicious
+    activity. Configure alerting  and blocking thresholds appropriate to the deployment.
+  theme: Threat Protection
+  section: threat_protection
+  commentary_group: Threat Detection and Protection
+  remediation_id: logging_and_monitoring
+  commentary: Internet-facing VoIP platforms are commonly targeted by authentication  attacks, SIP scanning,
+    malformed message attacks, denial-of-service  attempts, and toll-fraud activity. Intrusion detection
+    controls can assist  in identifying and responding to malicious behaviour before it affects  platform
+    availability or security.
+  positive: Intrusion detection controls were configured to detect and respond to  malicious SIP activity.
+  guidance:
+    common: "Review intrusion detection settings and confirm the platform is \nconfigured to detect, alert\
+      \ on, and where appropriate block malicious \nSIP activity."
+    audiocodes: "Setup > Signaling & Media > Intrusion Detection > IDS General Settings / \nIDS Policies\n\
+      \nSetup > Signaling & Media > SBC > Malicious Signature\nSetup > Signaling & Media > Message Manipulation\
+      \ > Message Policies\nSetup > Signaling & Media > Core Entities > SIP Interfaces"
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+  - https://techdocs.audiocodes.com/session-border-controller-sbc/security/version-740/Content/Security/Implement%20Dynamic%20Blacklisting.htm
+  - https://techdocs.audiocodes.com/session-border-controller-sbc/security/version-740/Content/Security/Define%20Malicious%20Signatures.htm
+  applies_when:
+    voip_solution:
+    - AudioCodes
+- id: security-relevant-events-not-logged
+  question: Are security-relevant events, administrative actions, and configuration changes logged and
+    retained?
+  expected_value: "Review Activity Types To Report:\n  - Device Software Upgrade\n  - Non-Authorized Access\n\
+    \  - Sensitive Parameters Value Change\n  - Login and Logout\n  - CLI Activity\n  - Action Executed\n\
+    \nFor CDRs:\n  - CDR Syslog Server IP Address: Configured\n  - CDR Report Level: Start & End & Connect\
+    \ Call\n  - Media CDR Report Level: End Media\n  - CDR Syslog Sequence Number: Enable\n\nNote: For\
+    \ CDRs, the Syslog functionality must be enabled."
+  expected_answer: compliant
+  finding_title: Security-Relevant Events Not Logged
+  description: Administrative activity was not adequately logged or retained.
+  solution: Enable audit logging for administrative activity and retain logs in  accordance with organisational
+    monitoring and retention requirements.
+  theme: Monitoring and Detection
+  section: monitoring
+  commentary_group: Logging and Monitoring
+  remediation_id: logging_and_monitoring
+  commentary: Audit logging provides visibility into authentication events,  administrative activity,
+    configuration changes, software updates, and  security-relevant events. Comprehensive logging supports
+    accountability,  security monitoring, incident response, and forensic investigation  following suspicious
+    or unauthorised activity.
+  positive: Security-relevant events, administrative activity, and configuration  changes were logged
+    and retained appropriately.
+  guidance:
+    common: "Review audit logging configuration and confirm that administrative \nactions, configuration\
+      \ changes, and privileged account activity are \nrecorded and retained for investigation and accountability\
+      \ purposes."
+    audiocodes: "Troubleshoot > Logging > Logging Settings\n\nTroubleshoot > Call Detail Record > Call\
+      \ Detail Record > Call Detail \nRecord Settings"
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+  - https://techdocs.audiocodes.com/session-border-controller-sbc/security/version-740/Content/Security/Enable%20Logging%20of%20Management.htm
+  - https://techdocs.audiocodes.com/session-border-controller-sbc/security/version-740/Content/Security/Enable%20Call%20Detail%20Records.htm
+  applies_when:
+    voip_solution:
+    - AudioCodes
+- id: logs-not-centrally-exported
+  question: Are logs exported to a centralised and access-controlled location?
+  expected_value: "- Enable Syslog: Enable\n  - Log Security Level: ?\n  - Syslog TLS Context: Configured"
+  expected_answer: compliant
+  finding_title: Security Logs Not Exported to Central Monitoring Platform
+  description: Logs were stored locally only or were not adequately protected from  modification.
+  solution: Forward logs to a centralised logging platform and restrict access to  authorised personnel.
+  theme: Monitoring and Detection
+  section: monitoring
+  commentary_group: Logging and Monitoring
+  remediation_id: logging_and_monitoring
+  commentary: Centralised log collection improves the ability to detect and investigate  security incidents
+    affecting VoIP infrastructure. Authentication events,  configuration changes, administrative activity,
+    and intrusion detection  alerts may be lost if logs are retained only on the local device.
+  positive: Logs were exported to a centralised and access-controlled repository.
+  guidance:
+    common: "Determine whether logs are forwarded to an external logging platform and \nwhether they are\
+      \ retained outside the local device. Evidence may include:\n\n- Syslog server configuration\n- SIEM\
+      \ integration\n- Remote log collectors\n- Central monitoring platforms"
+    audiocodes: Troubleshoot > Logging > Logging Settings
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+  - https://techdocs.audiocodes.com/session-border-controller-sbc/security/version-740/Content/Security/Enable%20Syslog.htm
+  applies_when:
+    voip_solution:
+    - AudioCodes
+- id: unregistered-users-permitted
+  question: Are calls restricted to registered users where applicable?
+  expected_value: "For the relevant SIP interface or SDR:\n  - Enable Un-Authenticated Registrations:\
+    \ Disable"
+  expected_answer: compliant
+  finding_title: Calls From Unregistered Users Permitted
+  description: Calls from unregistered users were permitted.
+  solution: Configure registration enforcement and restrict call placement to  authenticated and registered
+    users where operationally appropriate.
+  theme: VoIP Security
+  section: voip_security
+  commentary_group: Threat Detection and Protection
+  remediation_id: threat_protection
+  commentary: Permitting calls from unauthenticated or unregistered users may increase  the risk of fraudulent
+    call activity, unauthorised service use, and SIP  impersonation attacks.
+  positive: Calls were restricted to registered users where applicable.
+  guidance:
+    audiocodes: Setup > Signaling & Media > Core Identities > SIP Interfaces / SRDs
+  references:
+  - https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice
+  - https://techdocs.audiocodes.com/session-border-controller-sbc/security/version-740/Content/Security/Block%20Registration%20from%20Un.htm
+  applies_when:
+    voip_solution:
+    - AudioCodes

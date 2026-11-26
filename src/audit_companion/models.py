@@ -18,8 +18,11 @@ class ContextField(BaseModel):
     phase: Literal["setup", "context"] = "context"
     required: bool = False
     options: list[str] = Field(default_factory=list)
+    description: str | None = None
+    option_descriptions: dict[str, str] = Field(default_factory=dict)
     evidence: str | None = None
     location: str | None = None
+    guidance: dict[str, str] = Field(default_factory=dict)
     applies_when: dict[str, list[str]] = Field(default_factory=dict)
 
     @model_validator(mode="after")
@@ -28,6 +31,8 @@ class ContextField(BaseModel):
             raise ValueError(f"{self.type} context fields must define options")
         if self.type not in ("choice", "multi_choice") and self.options:
             raise ValueError("Only choice context fields may define options")
+        if not set(self.option_descriptions).issubset(self.options):
+            raise ValueError("Option descriptions must refer to configured options")
         return self
 
 
@@ -39,8 +44,13 @@ class Question(BaseModel):
     expected_value: str
     expected_answer: Literal["compliant", "non_compliant"] = "compliant"
     section: str | None = None
+    theme: str | None = None
+    commentary_group: str | None = None
+    remediation_id: str | None = None
+    commentary: str | None = None
     evidence: str | None = None
     location: str | None = None
+    guidance: dict[str, str] = Field(default_factory=dict)
     applies_when: dict[str, list[str]] = Field(default_factory=dict)
     repeat_for: list[str] = Field(default_factory=list)
     finding_title: str
@@ -49,6 +59,7 @@ class Question(BaseModel):
     references: list[str] = Field(default_factory=list)
     positive: str | None = None
     sureformat_id: str | None = None
+    sureformat_id_by_scope: dict[str, str] = Field(default_factory=dict)
 
 
 class AssessmentPack(BaseModel):

@@ -3,19 +3,27 @@
 A framework for guided, live security assessments, with modular assessment
 packs for MDM, remote access, VoIP, and beyond.
 
-Audit Companion is being built from the shared workflow in the
+Audit Companion builds on the shared workflow in the
 [MDM-Audit](https://github.com/CSpanias/mdm-audit),
 [Remote-Access-Audit](https://github.com/CSpanias/remote-access-audit), and
 [VoIP-Audit](https://github.com/CSpanias/voip-audit) proof of concepts. The
 framework owns the common interview, response, and export behavior; assessment
 packs own their context, control content, and applicability rules.
 
-## Current status
+## Start an assessment
 
-The initial core supports validated YAML assessment packs, guided terminal
-interviews, conditional context and question selection, and JSON/Markdown
-exports, together with a self-contained HTML report. The original assessment
-content has not yet been migrated.
+The built-in assessment packs start directly from their subcommand:
+
+```powershell
+audit-companion mdm
+audit-companion remote-access
+audit-companion voip
+```
+
+Each command begins the interactive setup and guided control review, then
+writes JSON findings, a Markdown report, and a self-contained HTML report to
+the current directory. Use `--output-dir reports` to choose another output
+directory.
 
 ## Install for development
 
@@ -25,14 +33,14 @@ py -m venv .venv
 python -m pip install -e ".[dev,docs]"
 ```
 
-## Run a pack
+## Run a custom pack
 
 ```powershell
 audit-companion validate path\to\assessment.yaml
 audit-companion run path\to\assessment.yaml --output-dir .
 ```
 
-The run command writes `<pack-id>-findings.json`, `<pack-id>-report.md`, and
+Custom packs write `<pack-id>-findings.json`, `<pack-id>-report.md`, and
 `<pack-id>-report.html` to the chosen output directory.
 
 Try the included example:
@@ -90,5 +98,5 @@ separately for each selected value, preserving per-platform assessment results.
 - Keep the interview and result lifecycle shared.
 - Keep each assessment's question bank, evidence guidance, and specialized
   rules in its own pack.
-- Migrate one proof of concept at a time and verify its generated outputs
-  against the existing tool before retiring any behavior.
+- Keep the source assessment content and guided workflow aligned as the packs
+  evolve.

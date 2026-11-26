@@ -21,22 +21,20 @@ See [VoIP fundamentals](../background/voip-fundamentals.md) for architecture
 and protocol background. The existing AudioCodes-specific control context is
 maintained in the [AudioCodes SBC guide](https://app.notion.com/p/AudioCodes-SBCs-40e5b866a8b480c48c42db081c49c26c?pvs=21).
 
-## Outputs and downstream reporting
+## Start the assessment and reporting
 
-The standalone tool generates:
+Run the interactive assessment with:
 
-- `voip-findings.json`
-- `voip-report.md`
-- `voip-notes.json`
+```powershell
+audit-companion voip
+```
+
+The assessment writes `voip-findings.json`, `voip-report.md`, and
+`voip-report.html`. The JSON report includes the response history and
+assessor notes.
 
 ## References
 
-The source assessment identifies the following general reference for future
-inclusion in its control content:
+The control pack includes this general reference:
 
 - [NCSC: Private Branch Exchange (PBX) best practice](https://www.ncsc.gov.uk/guidance/private-branch-exchange-best-practice)
-
-## Migration status
-
-VoIP is a planned Audit Companion assessment pack. Its original controls and
-AudioCodes-specific guidance have not yet been migrated.

@@ -21,7 +21,10 @@ def export_sureformat_xml(
     hostname_for_scope: Callable[[dict[str, str]], str],
 ) -> tuple[list[Path], list[str]]:
     questions_by_id = {question.id: question for question in pack.questions}
-    if not any(question.sureformat_id for question in pack.questions):
+    if not any(
+        question.sureformat_id or question.sureformat_id_by_scope
+        for question in pack.questions
+    ):
         raise SureFormatExportError(
             f"Assessment pack {pack.id} has no SureFormat finding mappings."
         )
@@ -38,17 +41,22 @@ def export_sureformat_xml(
     for finding in results.findings:
         question_id = str(finding["question_id"])
         question = questions_by_id[question_id]
-        if not question.sureformat_id:
+        scope_value = finding.get("scope", {})
+        scope = scope_value if isinstance(scope_value, dict) else {}
+        vulnerability_id = question.sureformat_id or next(
+            (
+                question.sureformat_id_by_scope[value]
+                for value in scope.values()
+                if value in question.sureformat_id_by_scope
+            ),
+            None,
+        )
+        if not vulnerability_id:
             unmapped.append(question_id)
             continue
-        scope_value = finding.get("scope", {})
-        scope_key = (
-            tuple(sorted(scope_value.items()))
-            if isinstance(scope_value, dict)
-            else ()
-        )
+        scope_key = tuple(sorted(scope.items()))
         grouped_findings.setdefault(scope_key, []).append(
-            (finding, question.sureformat_id)
+            (finding, vulnerability_id)
         )
 
     destination = Path(output_dir)

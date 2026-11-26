@@ -19,17 +19,23 @@ python -m pip install -e ".[dev,docs]"
 
 The package requires Python 3.11 or later.
 
-## Validate and run the example pack
+## Start an assessment
+
+```powershell
+audit-companion mdm
+audit-companion remote-access
+audit-companion voip
+```
+
+Each command starts its interactive assessment and generates JSON, Markdown,
+and HTML reports. Add `--output-dir reports` to write the reports elsewhere.
+
+To try the pack format with a custom assessment:
 
 ```powershell
 audit-companion validate examples\minimal.yaml
 audit-companion run examples\minimal.yaml --output-dir reports
 ```
-
-The current CLI works with pack files. The planned
-`audit-companion mdm`, `audit-companion remote-access`, and
-`audit-companion voip` commands will be added as their assessment content is
-migrated.
 
 ## Build the documentation
 

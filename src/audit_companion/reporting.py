@@ -72,11 +72,16 @@ def _render_markdown(results: AssessmentResults) -> str:
                     )
                 )
                 lines.append("")
+            if item.get("theme"):
+                lines.append(f"Theme: {item['theme']}")
+                lines.append("")
             if item.get("section"):
                 lines.append(f"Section: {item['section']}")
                 lines.append("")
             lines.append(str(item["description"]))
             lines.append("")
+            if item.get("commentary"):
+                lines.extend([str(item["commentary"]), ""])
             lines.append(f"Expected value: {item['expected_value']}")
             if heading == "Findings" and item.get("solution"):
                 lines.extend(["", f"Recommended action: {item['solution']}"])
@@ -217,9 +222,16 @@ def _render_html_observations(
         if notes:
             notes_html = f"<h4>Assessor notes</h4><p>{escape(str(notes))}</p>"
         section_html = ""
+        theme = observation.get("theme")
+        if theme:
+            section_html = f'<p class="muted">Theme: {escape(str(theme))}</p>'
         section = observation.get("section")
         if section:
-            section_html = f'<p class="muted">{escape(str(section))}</p>'
+            section_html += f'<p class="muted">Section: {escape(str(section))}</p>'
+        commentary_html = ""
+        commentary = observation.get("commentary")
+        if commentary:
+            commentary_html = f"<p>{escape(str(commentary))}</p>"
         scope_html = (
             f'<p class="muted">Scope: {escape(scope_text)}</p>'
             if scope_text
@@ -231,6 +243,7 @@ def _render_html_observations(
             f"<h3>{escape(str(observation.get('title', '')))}</h3>"
             f"{section_html}{scope_html}"
             f"<p>{escape(str(observation.get('description', '')))}</p>"
+            f"{commentary_html}"
             f"<p><strong>Expected value:</strong> "
             f"{escape(str(observation.get('expected_value', '')))}</p>"
             f"{solution_html}{notes_html}{references_html}"

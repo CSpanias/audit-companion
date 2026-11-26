@@ -26,5 +26,8 @@ audit-companion = "audit_companion.cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+audit_companion = ["data/packs/*.yaml"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

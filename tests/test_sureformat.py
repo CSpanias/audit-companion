@@ -60,3 +60,30 @@ def test_sureformat_export_requires_pack_mappings(tmp_path) -> None:
 
     with pytest.raises(SureFormatExportError, match="no SureFormat finding mappings"):
         export_sureformat_xml(results, pack, tmp_path, lambda _scope: "asset")
+
+
+def test_sureformat_export_can_map_a_finding_by_scope(tmp_path) -> None:
+    pack = load_pack("examples/minimal.yaml")
+    pack.questions[0].sureformat_id_by_scope = {"Platform A": "SC-101"}
+    results = build_results(
+        pack,
+        {"access_platform": "Platform A", "organization": "Example"},
+        {},
+        [
+            QuestionResponse(
+                question_id="mfa-enabled",
+                answer="non_compliant",
+                scope={"access_platform": "Platform A"},
+            )
+        ],
+    )
+
+    xml_paths, unmapped = export_sureformat_xml(
+        results,
+        pack,
+        tmp_path,
+        lambda _scope: "asset-platform-a",
+    )
+
+    assert unmapped == []
+    assert ET.parse(xml_paths[0]).find(".//vulnerability").attrib["id"] == "SC-101"
