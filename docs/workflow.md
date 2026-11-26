@@ -14,6 +14,7 @@ over a call, asks the questions, and records the evidence and responses.
 3. **Control assessment** — present applicable controls, expected values,
    evidence guidance, and configuration locations. The assessor records
    compliant, non-compliant, not applicable, or unknown, with optional notes.
+   A progress bar shows how many controls have been completed.
 4. **Results** — turn non-compliant responses into findings and compliant
    responses into positive observations. Unknown and not-applicable answers
    remain in the response history without becoming findings.

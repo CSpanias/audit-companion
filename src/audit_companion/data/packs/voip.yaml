@@ -188,8 +188,9 @@ context:
   phase: context
   required: true
   guidance:
-    common: "Record the currently installed software, firmware, or operating system \nversion where available.\
-      \ This information is used to assess platform \nsupportability and patch status."
+    common: >-
+      Record the currently installed software, firmware, or operating system version where available.
+      This information is used to assess platform supportability and patch status.
     audiocodes: Monitor > Summary > Device Information > Version ID
   applies_when:
     voip_solution:

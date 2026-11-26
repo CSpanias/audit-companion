@@ -11,7 +11,7 @@ from audit_companion.models import (
     Question,
     QuestionResponse,
 )
-from audit_companion.ui import emit, emit_detail, emit_panel, prompt
+from audit_companion.ui import emit, emit_detail, emit_panel, emit_progress, prompt
 
 
 def _show_guidance(
@@ -23,6 +23,7 @@ def _show_guidance(
     common = guidance.get("common")
     if common:
         emit_detail("Evidence", common.strip(), "blue", output_fn)
+        emit("", output_fn)
 
     selected_values = []
     for field_id, value in context.items():
@@ -38,7 +39,8 @@ def _show_guidance(
         and any(key.casefold() in value for value in normalized_values)
     ]
     if specific:
-        emit_detail("Where to check", "\n".join(specific), "yellow", output_fn)
+        emit_detail("Where to check", "\n\n".join(specific), "yellow", output_fn)
+        emit("", output_fn)
 
 
 class Applicable(Protocol):
@@ -239,6 +241,7 @@ def conduct_review(
     scope_counters: dict[str, int] = {}
 
     for overall_current, (question, scope) in enumerate(question_instances, start=1):
+        emit_progress(overall_current - 1, len(question_instances), output_fn)
         scope_value = scope.get(scope_field_order) if scope_field_order else None
         if scope_value is None:
             counter = f"[{overall_current}/{len(question_instances)}]"
@@ -250,12 +253,11 @@ def conduct_review(
                 f"Overall {overall_current}/{len(question_instances)}"
             )
         emit(counter, output_fn, "bold cyan")
-        emit("", output_fn)
-        emit(question.question, output_fn, "bold")
-        emit("", output_fn)
         group = question.commentary_group or question.theme
         if group:
             emit(f"Domain: {group}", output_fn, "dim")
+        emit(question.question, output_fn, "bold")
+        emit("", output_fn)
         additional_scope = {
             field_id: value
             for field_id, value in scope.items()
@@ -271,8 +273,11 @@ def conduct_review(
                 output_fn,
                 "yellow",
             )
+        if additional_scope:
+            emit("", output_fn)
         if question.evidence:
             emit_detail("Evidence", question.evidence, "blue", output_fn)
+            emit("", output_fn)
         if question.location:
             emit_detail(
                 "Where to check",
@@ -280,8 +285,10 @@ def conduct_review(
                 "yellow",
                 output_fn,
             )
+            emit("", output_fn)
         _show_guidance(question.guidance, context, scope, output_fn)
         emit_detail("Expected", question.expected_value, "green", output_fn)
+        emit("", output_fn)
         emit(
             "1. Compliant       2. Non-compliant\n"
             "3. Not applicable  4. Unknown",
@@ -310,6 +317,8 @@ def conduct_review(
                 notes=notes,
             )
         )
+        if overall_current == len(question_instances):
+            emit_progress(overall_current, len(question_instances), output_fn)
         emit("", output_fn)
 
     return responses

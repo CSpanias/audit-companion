@@ -158,15 +158,9 @@ def test_interview_collects_setup_before_conditioned_context_and_questions() -> 
         in output
     )
     first_question_index = output.index("Is the shared control enabled?")
-    assert output[first_question_index - 2 : first_question_index] == [
-        "[1/2]",
-        "",
-    ]
+    assert output[first_question_index - 1] == "[1/2]"
     second_question_index = output.index("Is the iOS control enabled?")
-    assert output[second_question_index - 2 : second_question_index] == [
-        "[2/2]",
-        "",
-    ]
+    assert output[second_question_index - 1] == "[2/2]"
     assert output.count("") >= len(results.context) + len(results.responses)
 
 
@@ -214,6 +208,12 @@ def test_interview_batches_repeated_questions_by_configured_scope() -> None:
         "[1/2] iOS  |  Overall 1/3",
         "[2/2] iOS  |  Overall 2/3",
         "[1/1] Android  |  Overall 3/3",
+    ]
+    assert [line for line in output if line.startswith("Progress:")] == [
+        "Progress: [--------------------] 0/3 completed",
+        "Progress: [######--------------] 1/3 completed",
+        "Progress: [#############-------] 2/3 completed",
+        "Progress: [####################] 3/3 completed",
     ]
     assert (
         "1. Compliant       2. Non-compliant\n3. Not applicable  4. Unknown"
@@ -268,3 +268,35 @@ def test_guidance_uses_the_current_repeated_scope() -> None:
     assert any("iOS configuration location" in line for line in output)
     assert not any("Android configuration location" in line for line in output)
     assert output[-1] == ""
+
+
+def test_review_separates_domain_guidance_and_expected_sections() -> None:
+    question = make_pack().questions[0].model_copy(
+        update={
+            "theme": "Authentication",
+            "guidance": {
+                "common": "Review the settings.",
+                "ios": "Devices > Settings",
+            },
+        }
+    )
+    answers = iter(["1", ""])
+    output: list[str] = []
+
+    conduct_review(
+        [question],
+        {"platforms": ["iOS"]},
+        input_fn=lambda _prompt: next(answers),
+        output_fn=output.append,
+    )
+
+    index = output.index("Domain: Authentication")
+    assert output[index - 1 : index + 2] == [
+        "[1/1]",
+        "Domain: Authentication",
+        "Is the shared control enabled?",
+    ]
+    assert output[index + 2] == ""
+    assert output[output.index("Evidence: Review the settings.") + 1] == ""
+    assert output[output.index("Where to check: Devices > Settings") + 1] == ""
+    assert output[output.index("Expected: Enabled") + 1] == ""
